@@ -1,51 +1,51 @@
 import React, { useState, useEffect } from "react";
+import { api } from "../api/token";
 import { saveAs } from "file-saver";
-import { toast } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; 
+import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify"; 
 import MUIDataTable from "mui-datatables";
-import EditIcon from "@mui/icons-material/Edit";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import IconButton from "@mui/material/IconButton";
+import SidebarCoord from "../components/SidebarCoord";
 import clsx from "clsx";
 import * as XLSX from "xlsx";
-import Sidebar from "../components/Sidebar";
 import Home from "../components/Home";
-import EditPrestamoModal from "../components/EditPrestamoModal";
-import AddPrestamoModal from "../components/AddPrestamoModal";
 import "react-toastify/dist/ReactToastify.css";
 
 const Prestamos = () => {
-  const [sidebarToggle, setSidebarToggle] = useState(false);
-  const [data, setData] = useState([]);
-  const [isOpenEditModal, setIsOpenEditModal] = useState(false);
-  const [selectedPrestamo, setSelectedPrestamo] = useState(null);
-  const [isOpenAddModal, setIsOpenAddModal] = useState(false);
+  const [sidebarToggleCoord, setsidebarToggleCoord] = useState(false);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true)
+  const [data, setData] = useState([
+    {
+      fechaPrestamos: "",
+      servidorAsignado: "",
+      codigoFicha: "",
+      area: "",
+      EstadoId: "",
+    },
+  ]);
 
-  const { user } = useAuth();
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = [
-        {
-          Codigo: "",
-          Id: "",
-          IdFicha: "",
-          IDUsuario: "",
-          IDInstructor: "",
-          IDHerramienta: "",
-          Cantidad: "",
-          FechaPrestamo: "",
-          FechaDevolucion: "",
-          Estado: "",
-          Observaciones: "",
-        },
-      ];
+      const response = await api.get("/prestamos");
+      const data = response.data;
 
-      setData(response);
+      const PrestamoFormatted = data.map((pedido) => ({
+        id: pedido.id,
+        fechaPrestamos: pedido.fechaPrestamos,
+        servidorAsignado: pedido.servidorAsignado,
+        codigoFicha: pedido.codigoFicha,
+        area: pedido.area,
+        estadoName: pedido.Estado?.estadoName || "",
+      }));
+
+      setData(PrestamoFormatted);
     } catch (error) {
-      console.error("Error fetching loan data:", error);
-      toast.error("Error al cargar los datos de préstamos", {
+      console.error("Error fetching Prestamo data:", error);
+      toast.error("Error al cargar los datos de Prestamo", {
         position: "top-right",
         autoClose: 2000,
         hideProgressBar: false,
@@ -60,196 +60,134 @@ const Prestamos = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [])
 
-  const handleEditClick = (rowIndex) => {
-    const prestamo = data[rowIndex];
-    setSelectedPrestamo(prestamo);
-    setIsOpenEditModal(true);
-  };
+  const handleViewClick = (rowIndex) => {
+    const Pedido = data[rowIndex]; 
+    navigate("/gestionarPrestamos", { state: { prestamoId: Pedido.id } }); 
+  }; 
 
-  const handleCloseEditModal = (updatedPrestamo) => {
-    if (updatedPrestamo) {
-      fetchData();
-    }
-    setIsOpenEditModal(false);
-    setSelectedPrestamo(null);
-  };
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); 
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
 
-  const handleOpenAddModal = () => {
-    setIsOpenAddModal(true);
-  };
-
-  const handleCloseAddModal = (newPrestamo) => {
-    if (newPrestamo) {
-      fetchData();
-    }
-    setIsOpenAddModal(false);
-  };
-
+ 
   const columns = [
     {
-      name: "Codigo",
-      label: "CÓDIGO",
+      name: "fechaPrestamos",
+      label: "FECHA",
       options: {
         customHeadRender: (columnMeta) => (
-          <th 
+          <th
             key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
+          </th>
+        ),
+        customBodyRender: (value) => (
+          <div className="text-center"> 
+            {formatDate(value)} 
+          </div>
+          ),
+      },
+    },
+    {
+      name: "servidorAsignado",
+      label: "NOMBRE SOLICITANTE",
+      options: {
+        customHeadRender: (columnMeta) => (
+          <th
+            key={columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
         ),
         customBodyRender: (value) => <div className="text-center">{value}</div>,
       },
     },
     {
-      name: "Id",
-      label: "ID",
-      options: {
-        customHeadRender: (columnMeta) => (
-          <th 
-            key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
-          </th>
-        ),
-        customBodyRender: (value) => <div className="text-center">{value}</div>,
-      },
-    },
-    {
-      name: "IdFicha",
+      name: "codigoFicha",
       label: "FICHA",
       options: {
         customHeadRender: (columnMeta) => (
-          <th 
+          <th
             key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
         ),
         customBodyRender: (value) => <div className="text-center">{value}</div>,
       },
     },
     {
-      name: "IDUsuario",
-      label: "USUARIO",
+      name: "area",
+      label: "ÁREA",
       options: {
         customHeadRender: (columnMeta) => (
-          <th 
+          <th
             key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
         ),
         customBodyRender: (value) => <div className="text-center">{value}</div>,
       },
     },
     {
-      name: "IDInstructor",
-      label: "INSTRUCTOR",
-      options: {
-        customHeadRender: (columnMeta) => (
-          <th 
-            key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
-          </th>
-        ),
-        customBodyRender: (value) => <div className="text-center">{value}</div>,
-      },
-    },
-    {
-      name: "IDHerramienta",
-      label: "HERRAMIENTA",
-      options: {
-        customHeadRender: (columnMeta) => (
-          <th 
-            key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
-          </th>
-        ),
-        customBodyRender: (value) => <div className="text-center">{value}</div>,
-      },
-    },
-    {
-      name: "Cantidad",
-      label: "CANTIDAD",
-      options: {
-        customHeadRender: (columnMeta) => (
-          <th 
-            key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
-          </th>
-        ),
-        customBodyRender: (value) => <div className="text-center">{value}</div>,
-      },
-    },
-    {
-      name: "FechaPrestamo",
-      label: "FECHA DE PRÉSTAMO",
-      options: {
-        customHeadRender: (columnMeta) => (
-          <th 
-            key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
-          </th>
-        ),
-        customBodyRender: (value) => <div className="text-center">{value}</div>,
-      },
-    },
-    {
-      name: "FechaDevolucion",
-      label: "FECHA DE DEVOLUCIÓN",
-      options: {
-        customHeadRender: (columnMeta) => (
-          <th 
-            key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
-          </th>
-        ),
-        customBodyRender: (value) => <div className="text-center">{value}</div>,
-      },
-    },
-    {
-      name: "Estado",
+      name: "estadoName",
       label: "ESTADO",
       options: {
         customHeadRender: (columnMeta) => (
-          <th 
+          <th
             key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
         ),
-        customBodyRender: (value) => <div className="text-center">{value}</div>,
+        customBodyRender: (value) => (
+          <div
+            className={clsx("text-center", {
+              "text-green-500": value === "ENTREGADO",
+              "text-orange-500": value === "EN PROCESO",
+              "text-red-500": value === "PENDIENTE",
+            })}
+          >
+            {value}
+          </div>
+        ),
+        setCellHeaderProps: () => ({ style: { textAlign: "center" } }),
       },
     },
     {
-      name: "Observaciones",
-      label: "OBSERVACIONES",
+      name: "ver",
+      label: "VER DETALLE",
       options: {
         customHeadRender: (columnMeta) => (
-          <th 
+          <th
             key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
         ),
-        customBodyRender: (value) => <div className="text-center">{value}</div>,
-      },
-    },
-    {
-      name: "edit",
-      label: "EDITAR",
-      options: {
         filter: false,
-        customHeadRender: (columnMeta) => (
-          <th 
-            key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
-          </th>
-        ),
         customBodyRender: (value, tableMeta, updateValue) => (
           <div className="flex items-center justify-center">
             <IconButton
-              onClick={() => handleEditClick(tableMeta.rowIndex)}
+              onClick={() => handleViewClick(tableMeta.rowIndex)}
               color="primary"
-              aria-label="edit"
+              aria-label="view"
             >
-              <EditIcon />
+              <VisibilityIcon />
             </IconButton>
           </div>
         ),
@@ -259,18 +197,14 @@ const Prestamos = () => {
 
   const handleCustomExport = (rows) => {
     const exportData = rows.map((row) => ({
-      Codigo: row.data[0],
-      Id: row.data[1],
-      IdFicha: row.data[2],
-      IDUsuario: row.data[3],
-      IDInstructor: row.data[4],
-      IDHerramienta: row.data[5],
-      Cantidad: row.data[6],
-      FechaPrestamo: row.data[7],
-      FechaDevolucion: row.data[8],
-      Estado: row.data[9],
-      Observaciones: row.data[10],
+      Código: row.data[0],
+      Nombre: row.data[1],
+      "Fecha de Ingreso": row.data[2],
+      Marca: row.data[3],
+      Condición: row.data[4],
+      Descripción: row.data[5],
     }));
+
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Prestamos");
@@ -282,54 +216,40 @@ const Prestamos = () => {
     saveAs(data, "Prestamos.xlsx");
   };
 
-  // Función para verificar permisos
-  const hasPermission = (permissionName) => {
-    return user.DetallePermisos.some(
-      (permiso) => permiso.Permiso.nombrePermiso === permissionName
-    );
-  }; 
-
   return (
-    <div className="flex min-h-screen">
-      <Sidebar sidebarToggle={sidebarToggle} />
+    <div className="flex min-h-screen bg-fondo">
+      <SidebarCoord sidebarToggleCoord={sidebarToggleCoord} />
       <div
-        className={`flex flex-col flex-grow p-6 bg-gray-100 ${
-          sidebarToggle ? "ml-64" : ""
+        className={`flex flex-col flex-grow p-4 bg-fondo ${
+          sidebarToggleCoord ? "ml-64" : ""
         } mt-16`}
       >
         <Home
-          sidebarToggle={sidebarToggle}
-          setSidebarToggle={setSidebarToggle}
+          sidebarToggle={sidebarToggleCoord}
+          setSidebarToggle={setsidebarToggleCoord}
         />
-        <div className="flex justify-end mt-2">
-          {hasPermission("Crear Prestamo") && (
-            <button className="btn-primary" onClick={handleOpenAddModal}>
-              Agregar Préstamo
-            </button>
-          )}
-        </div>
         <div className="flex-grow flex items-center justify-center">
-          <div className="max-w-9xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             {loading ? (
-              <div className="text-center">Cargando préstamos...</div>
+              <div className="text-center">Cargando Prestamo...</div>
             ) : (
               <MUIDataTable
-                title={<span className="custom-title">PRÉSTAMOS</span>}
+                title={
+                  <span className="custom-title">
+                    Prestamo de Herramienta consumibles
+                  </span>
+                }
                 data={data}
                 columns={columns}
                 options={{
                   responsive: "standard",
                   selectableRows: "none",
                   download: true,
-                  print: true,
-                  viewColumns: true,
-                  filter: true,
-                  search: true,
                   rowsPerPage: 5,
                   rowsPerPageOptions: [5, 10, 15],
                   setTableProps: () => {
                     return {
-                      className: "custom-table",
+                      className: "custom-tables",
                     };
                   },
                   onDownload: (buildHead, buildBody, columns, data) => {
@@ -344,15 +264,15 @@ const Prestamos = () => {
                     pagination: {
                       next: "Siguiente",
                       previous: "Anterior",
-                      rowsPerPage: "Filas por página:",
+                      rowsPerPage: "Filas por página",
                       displayRows: "de",
                     },
                     toolbar: {
                       search: "Buscar",
                       downloadCsv: "Descargar CSV",
                       print: "Imprimir",
-                      viewColumns: "Ver Columnas",
-                      filterTable: "Filtrar Tabla",
+                      viewColumns: "Mostrar columnas",
+                      filterTable: "Filtrar tabla",
                     },
                     filter: {
                       all: "Todos",
@@ -360,13 +280,13 @@ const Prestamos = () => {
                       reset: "REINICIAR",
                     },
                     viewColumns: {
-                      title: "Mostrar Columnas",
+                      title: "Mostrar columnas",
                       titleAria: "Mostrar/Ocultar Columnas",
                     },
                     selectedRows: {
                       text: "fila(s) seleccionada(s)",
                       delete: "Eliminar",
-                      deleteAria: "Eliminar filas seleccionadas",
+                      deleteAria: "Eliminar fila seleccionada",
                     },
                   },
                 }}
@@ -375,14 +295,7 @@ const Prestamos = () => {
           </div>
         </div>
       </div>
-      {selectedPrestamo && (
-        <EditPrestamoModal
-          isOpen={isOpenEditModal}
-          onClose={handleCloseEditModal}
-          prestamo={selectedPrestamo}
-        />
-      )}
-      <AddPrestamoModal isOpen={isOpenAddModal} onClose={handleCloseAddModal}/>
+      <ToastContainer />
     </div>
   );
 };

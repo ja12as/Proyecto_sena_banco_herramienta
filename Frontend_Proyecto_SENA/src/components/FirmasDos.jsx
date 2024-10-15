@@ -30,7 +30,7 @@ const FirmasDos = ({ accordionStates, onFirmaChange }) => {
           const data = response.data;
 
           if (data.firma) {
-            const firmaUrl = `http://localhost:9100${data.firma}`;  
+            const firmaUrl = `http://localhost:9400${data.firma}`;  
             setFirmaExistente(firmaUrl);
             onFirmaChange(false, null);
           }          

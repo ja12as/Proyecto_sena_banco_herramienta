@@ -150,7 +150,7 @@ const enviarCorreoNotificacion = async (pedido) => {
         <strong>${pedido.codigoFicha}</strong> ya está listo para ser recogido.
       </p>
       <p>
-        Puedes pasar por el horario del personal del banco de herramientas. 
+        Puedes pasar por el en horario del personal del banco de herramientas. 
       </p>
       <p style="font-weight: bold; color: #28A745;">
         ¡Gracias por tu confianza!

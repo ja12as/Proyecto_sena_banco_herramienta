@@ -114,14 +114,17 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
   };
 
   const handleCreate = async () => {
-    const {  nombre, codigo, marca, condicion, observaciones,  EstadoId, SubcategoriaId } = formData;
+    const { nombre, codigo, marca, condicion, observaciones, EstadoId, SubcategoriaId } = formData;
+  
+    // Validar cada campo con mensajes de error personalizados
     const codigoError = validateInput("codigo", codigo);
     const nombreError = validateInput("nombre", nombre);
-    const condicionError = validateInput("fechaDeIngreso", condicion);
-    const observacionesError = validateInput("fechaDeIngreso", observaciones);
+    const condicionError = validateInput("condicion", condicion);
+    const observacionesError = validateInput("observaciones", observaciones);
     const marcaError = validateInput("marca", marca);
-
-    if (codigoError || nombreError  || condicionError || observacionesError || marcaError) {
+  
+    // Si hay errores en algún campo, mostramos el error correspondiente
+    if (codigoError || nombreError || condicionError || observacionesError || marcaError) {
       setFormErrors({
         codigo: codigoError,
         nombre: nombreError,
@@ -129,15 +132,52 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
         observaciones: observacionesError,
         marca: marcaError,
       });
-      showToastError("Por favor, corrige los errores antes de agregar.");
-      return;
+  
+      if (codigoError) {
+        showToastError("El código es inválido o está vacío.");
+      }
+      if (nombreError) {
+        showToastError("El nombre es obligatorio y debe ser válido.");
+      }
+      if (condicionError) {
+        showToastError("La condición es obligatoria.");
+      }
+      if (observacionesError) {
+        showToastError("El campo de observaciones es obligatorio.");
+      }
+      if (marcaError) {
+        showToastError("La marca es obligatoria.");
+      }
+      return; // Detener el proceso si hay errores
     }
-
-    if (!codigo || !nombre || !condicion || !observaciones|| !marca || !EstadoId || !SubcategoriaId ) {
-      showToastError("Todos los campos son obligatorios.");
-      return;
+  
+    // Verificar que los campos obligatorios estén completos
+    if (!codigo || !nombre || !condicion || !observaciones || !marca || !EstadoId || !SubcategoriaId) {
+      if (!codigo) {
+        showToastError("El campo 'Código' es obligatorio.");
+      }
+      if (!nombre) {
+        showToastError("El campo 'Nombre' es obligatorio.");
+      }
+      if (!condicion) {
+        showToastError("El campo 'Condición' es obligatorio.");
+      }
+      if (!observaciones) {
+        showToastError("El campo 'Observaciones' es obligatorio.");
+      }
+      if (!marca) {
+        showToastError("El campo 'Marca' es obligatorio.");
+      }
+      if (!EstadoId) {
+        showToastError("El campo 'Estado' es obligatorio.");
+      }
+      if (!SubcategoriaId) {
+        showToastError("El campo 'Subcategoría' es obligatorio.");
+      }
+      return; // Detener si falta algún campo
     }
-
+  
+    // Si todos los campos son válidos, procedemos con la creación
     setLoading(true);
     try {
       const token = document.cookie.replace(
@@ -149,7 +189,7 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
           Authorization: `Bearer ${token}`,
         },
       });
-
+  
       if (response.status === 201) {
         toast.success("Herramienta agregada exitosamente", {
           position: "top-right",
@@ -163,18 +203,15 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
         resetForm();
         setTimeout(() => {}, 2000);
       } else {
-        showToastError(
-          "Ocurrió un error!, por favor intenta con un código o nombre diferente."
-        );
+        showToastError("Error al agregar la herramienta. Intenta con un código o nombre diferente.");
       }
     } catch (error) {
-      showToastError(
-        "Ocurrió un error!, por favor intenta con un código o nombre diferente."
-      );
+      showToastError("Ocurrió un error al agregar la herramienta. Verifica los datos e intenta nuevamente.");
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div

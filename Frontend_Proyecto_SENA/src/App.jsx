@@ -34,6 +34,7 @@ import AutorizarPedidos from "./pages/AutorizarPedidos.jsx";
 import AutorizarPrestamos from "./pages/AutorizarPrestamos.jsx";
 import FirmaPrestamos from "./pages/FirmaPrestamos.jsx";
 import GestionarPedidos from "./pages/GestionarPedidos.jsx";
+import GestionarPrestamos from "./pages/GestionarPrestamos.jsx";
 
 function App() {
   return (
@@ -141,6 +142,7 @@ function App() {
           {/* Rutas protegidas por RolId */}
           <Route element={<ProtectedRoute requiredRoleId={1} />}>
             <Route path="/gestionarPedidos" element={<GestionarPedidos />} />
+            <Route path="/gestionarPrestamos" element={<GestionarPrestamos />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredRoleId={3} />}>

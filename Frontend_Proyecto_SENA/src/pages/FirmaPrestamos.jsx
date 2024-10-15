@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { api } from "../api/token";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import fondo from "/logoSena.png";
@@ -9,38 +10,35 @@ import FirmasDos from "./../components/FirmasDos";
 import SidebarCoord from "../components/SidebarCoord";
 import Home from "../components/Home";
 import TablaPrestamosFirma from "../components/TablaPrestamosFirma";
+import FirmaPrestamosEntrega from "../components/FirmaPrestamoEntrega";
 
 const FirmaPrestamos = () => {
   const [sidebarToggleCoord, setsidebarToggleCoord] = useState(false);
-  const [formErrors, setFormErrors] = useState({});
-  const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { herramientaId } = location.state || {};
+  const [pedidoData, setPedidoData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [firmaImagen, setFirmaImagen] = useState(null);
   const [formData, setFormData] = useState({
+    firmaPrestamos: "",
+    servidorAsignado: "",
+    codigoFicha: "",
+    area: "",
+    EstadoId: "",
     nombre: "",
     Documento: "",
-    fecha: "",
-    ficha: "",
-    area: "",
-    coordi: "",
-    cedCoordi: "",
-    instructor: "",
-    cedInstructor: "",
+    jefeOficina: "",
+    cedulaJefeOficina: "",
+    cedulaServidor: "",
     correo: "",
-    item: "",
     codigoSena: "",
   });
   const [firmaAdjunta, setFirmaAdjunta] = useState(false);
-  const navigate = useNavigate();
 
-  const handleFirmaChange = (isFirmaAdjunta) => {
+  const handleFirmaChange = (isFirmaAdjunta, file) => {
     setFirmaAdjunta(isFirmaAdjunta);
-  };
-
-  const handleClick = () => {
-    navigate("/formatoHerramientas");
-  };
-
-  const handleNavigate = () => {
-    navigate("/");
+    setFirmaImagen(file); 
   };
 
   const [accordionStates, setAccordionStates] = useState({
@@ -56,31 +54,6 @@ const FirmaPrestamos = () => {
     }));
   };
 
-  const validateInput = (name, value) => {
-    let errorMessage = "";
-    if (name === "area" || name === "coordi" || name === "instructor") {
-      const nameRegex = /^[A-Za-z\s-_\u00C0-\u017F]+$/;
-      if (!nameRegex.test(value) || /\d/.test(value)) {
-        errorMessage = "No puede contener caracteres especiales.";
-      }
-    }
-    return errorMessage;
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    const errorMessage = validateInput(name, value);
-    setFormErrors((prevErrors) => ({
-      ...prevErrors,
-      [name]: errorMessage,
-    }));
-
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
-
   const showToastError = (message) => {
     toast.error(message, {
       position: "top-right",
@@ -93,69 +66,119 @@ const FirmaPrestamos = () => {
     });
   };
 
-  const handleCreate = (currentSection) => {
-    const {
-      nombre,
-      Documento,
-      ficha,
-      fecha,
-      area,
-      coordi,
-      cedCoordi,
-      instructor,
-      cedInstructor,
-      correo,
-    } = formData;
-    const areaError = validateInput("area", area);
-    const coordiError = validateInput("coordi", coordi);
-    const instructorError = validateInput("instructor", instructor);
+  useEffect(() => {
+    const fetchData = async () => {
+      if (herramientaId) {
+        try {
+          const response = await api.get(`/prestamos/${herramientaId}`);
+          const data = response.data;
 
-    if (areaError || coordiError || instructorError) {
-      setFormErrors({
-        area: areaError,
-        coordi: coordiError,
-        instructor: instructorError,
+          const prestamosFormatted = {
+            id: data.id,
+            firmaPrestamos: data.firmaPrestamos,
+            codigoFicha: data.codigoFicha,
+            jefeOficina: data.jefeOficina,
+            cedulaJefeOficina: data.cedulaJefeOficina,
+            servidorAsignado: data.servidorAsignado,
+            cedulaServidor: data.cedulaServidor,
+            correo: data.correo,
+          };
+          setPedidoData(prestamosFormatted);
+          setFormData({
+            fecha: formatDateForInput(data.firmaPrestamos),
+            codigoFicha: data.codigoFicha,
+            area: data.area,
+            jefeOficina: data.jefeOficina,
+            cedulaJefeOficina: data.cedulaJefeOficina,
+            servidorAsignado: data.servidorAsignado,
+            cedulaServidor: data.cedulaServidor,
+            correo: data.correo,
+          });
+        } catch (error) {
+          console.error("Error fetching pedido data:", error);
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [herramientaId]);
+
+  const formatDateForInput = (dateString) => {
+    const date = new Date(dateString);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(date.getDate()).padStart(2, "0")}`;
+  };
+
+  const handleSubmit = async () => {
+    if (!firmaAdjunta) {
+      toast.error("Debe adjuntar una firma antes de enviar el pedido.", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
       });
-      showToastError("Por favor, corrige los errores antes de agregar.");
-      return;
+      return; 
     }
-
-    if (
-      !nombre ||
-      !Documento ||
-      !fecha ||
-      !ficha ||
-      !area ||
-      !coordi ||
-      !cedCoordi ||
-      !instructor ||
-      !cedInstructor ||
-      !correo
-    ) {
-      showToastError("Todos los campos son obligatorios, incluyendo la fecha.");
-      return;
-    }
-
-    if (currentSection === "datos") {
-      setAccordionStates({
-        datos: false,
-        productos: true,
-        firmas: false,
+  
+    try {
+      const formData = new FormData();
+      formData.append('firma', firmaImagen); 
+  
+      setLoading(true);
+  
+      const response = await api.put(`/prestamos/${herramientaId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-    } else if (currentSection === "productos") {
-      setAccordionStates({
-        datos: false,
-        productos: false,
-        firmas: true,
-      });
-    } else if (currentSection === "firmas") {
-      setAccordionStates({
-        datos: false,
-        productos: false,
-        firmas: false,
-      });
+  
+      if (response.status === 200) {
+        toast.success("Prestamo enviado correctamente.", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        navigate('/autPedidos'); 
+      } else {
+        toast.error("Error al enviar el prestamo.", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });    
+      }
+    } catch (error) {
+      console.error("Error al enviar el prestamo:", error);
+      toast.error("Error al enviar el prestamo.", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });  
+    } finally {
+      setLoading(false);
     }
   };
+  
+  const Navigate = () => {
+    navigate("/autPrestamos");
+  }
 
   return (
     <div className="flex min-h-screen bg-grisClaro">
@@ -270,18 +293,6 @@ const FirmaPrestamos = () => {
                               readOnly
                             />
                           </div>
-                          <div className="flex flex-row min-w-[200px] w-full md:w-1/3">
-                            <label className="mb-1 font-bold text-xs mt-2">
-                              Fecha de Solicitud*
-                            </label>
-                            <input
-                              className="bg-grisClaro border-b border-black text-xs px-2 h-8"
-                              type="date"
-                              name="fecha"
-                              value={formData.fecha}
-                              onChange={handleInputChange}
-                            />
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -308,15 +319,9 @@ const FirmaPrestamos = () => {
                           <input
                             className=" border-b border-black text-xs text-center h-8 w-20"
                             type="text"
-                            name="ficha"
-                            value={formData.ficha}
-                            onChange={handleInputChange}
-                            onKeyPress={(e) => {
-                              if (!/[0-9]/.test(e.key)) {
-                                e.preventDefault();
-                              }
-                            }}
-                            maxLength={7}
+                            name="codigoFicha"
+                            value={formData.codigoFicha}
+                            readOnly
                           />
                         </div>
                         <div className="flex flex-row min-w-[200px] w-full md:w-1/3">
@@ -329,18 +334,8 @@ const FirmaPrestamos = () => {
                               type="text"
                               name="area"
                               value={formData.area}
-                              onChange={handleInputChange}
-                              onKeyPress={(e) => {
-                                if (/[0-9]/.test(e.key)) {
-                                  e.preventDefault();
-                                }
-                              }}
+                              readOnly
                             />
-                            {formErrors.area && (
-                              <div className="text-red-400 text-xs mt-1 px-2">
-                                {formErrors.area}
-                              </div>
-                            )}
                           </div>
                         </div>
                       </div>
@@ -354,15 +349,10 @@ const FirmaPrestamos = () => {
                             <input
                               className=" border-b border-black text-xs text-center px-2 h-8"
                               type="text"
-                              name="coordi"
-                              value={formData.coordi}
-                              onChange={handleInputChange}
+                              name="jefeOficina"
+                              value={formData.jefeOficina}
+                              readOnly
                             />
-                            {formErrors.coordi && (
-                              <div className="text-red-400 text-xs mt-1 px-2">
-                                {formErrors.coordi}
-                              </div>
-                            )}
                           </div>
                         </div>
 
@@ -372,21 +362,10 @@ const FirmaPrestamos = () => {
                         <input
                           className=" border-b border-black text-xs text-center h-8 w-20"
                           type="text"
-                          name="cedCoordi"
-                          value={formData.cedCoordi}
-                          onChange={handleInputChange}
-                          onKeyPress={(e) => {
-                            if (!/[0-9]/.test(e.key)) {
-                              e.preventDefault();
-                            }
-                          }}
-                          maxLength={10}
+                          name="cedulaJefeOficina"
+                          value={formData.cedulaJefeOficina}
+                          readOnly
                         />
-                        {formErrors.Documento && (
-                          <div className="text-red-400 text-xs mt-1 px-2">
-                            {formErrors.Documento}
-                          </div>
-                        )}
                       </div>
 
                       <div className="flex flex-col md:flex-row justify-between gap-x-4 mb-4">
@@ -399,15 +378,10 @@ const FirmaPrestamos = () => {
                             <input
                               className=" border-b border-black text-xs text-center px-2 h-8"
                               type="text"
-                              name="instructor"
-                              value={formData.instructor}
-                              onChange={handleInputChange}
+                              name="servidorAsignado"
+                              value={formData.servidorAsignado}
+                              readOnly
                             />
-                            {formErrors.instructor && (
-                              <div className="text-red-400 text-xs mt-1 px-2">
-                                {formErrors.instructor}
-                              </div>
-                            )}
                           </div>
                         </div>
 
@@ -418,21 +392,10 @@ const FirmaPrestamos = () => {
                           <input
                             className=" border-b border-black text-xs text-center h-8 w-20"
                             type="text"
-                            name="cedInstructor"
-                            value={formData.cedInstructor}
-                            onChange={handleInputChange}
-                            onKeyPress={(e) => {
-                              if (!/[0-9]/.test(e.key)) {
-                                e.preventDefault();
-                              }
-                            }}
-                            maxLength={10}
+                            name="cedulaServidor"
+                            value={formData.cedulaServidor}
+                            readOnly
                           />
-                          {formErrors.Documento && (
-                            <div className="text-red-400 text-xs mt-1 px-2">
-                              {formErrors.Documento}
-                            </div>
-                          )}
                         </div>
                       </div>
                       <div>
@@ -446,12 +409,11 @@ const FirmaPrestamos = () => {
                               type="text"
                               name="correo"
                               value={formData.correo}
-                              onChange={handleInputChange}
+                              readOnly
                             />
                           </div>
                         </div>
                       </div>
-                      <div></div>
                     </div>
                   )}
                 </div>
@@ -491,7 +453,8 @@ const FirmaPrestamos = () => {
                   {accordionStates.firmas && (
                     <div className="flex flex-col rounded-lg w-full">
                       <div className="flex flex-row justify-between w-auto mb-4">
-                        <FirmasDos
+                        <FirmaPrestamosEntrega
+                          herramientaId={herramientaId}
                           accordionStates={accordionStates}
                           toggleAccordion={toggleAccordion}
                           onFirmaChange={handleFirmaChange}
@@ -503,14 +466,16 @@ const FirmaPrestamos = () => {
 
                 {/* Botón Enviar */}
                 <div className="flex justify-center items-center w-2/4 mt-10 mx-auto">
-                  <button
-                    className={`btn-black2 ${
-                      !firmaAdjunta ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                    disabled={!firmaAdjunta}
-                  >
-                    Enviar Pedido
+                  <button className="btn-danger2 mx-4" onClick={Navigate}>
+                    Atrás
                   </button>
+                <button
+                  className={`btn-black2 ${!firmaAdjunta ? "opacity-50 cursor-not-allowed" : ""}`}
+                  disabled={!firmaAdjunta || loading}
+                  onClick={handleSubmit}
+                >
+                  {loading ? "Enviando..." : "Enviar Pedido"}
+                </button>
                 </div>
               </div>
             </div>

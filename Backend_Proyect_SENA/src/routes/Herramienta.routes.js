@@ -11,6 +11,6 @@ HerramientaRouter.get("/herramienta", rutaProtegida, getAllHerramienta);
 HerramientaRouter.get("/herramienta/:id", rutaProtegida, getHerramienta);
 HerramientaRouter.post("/herramienta", rutaProtegida, crearHerramienta);
 HerramientaRouter.put("/herramienta/:id", rutaProtegida, putHerramienta);
-HerramientaRouter.get("/herramienta/busqueda", buscarHerramientas);
+/* HerramientaRouter.get("/herramienta/busqueda", buscarHerramientas); */
 
 export default HerramientaRouter;

@@ -42,16 +42,16 @@ const Herramienta = conexion.define(
       },
     },
     condicion: {
-      type: DataTypes.ENUM("Bueno", "Regular", "Malo"),
+      type: DataTypes.ENUM("BUENO", "REGULAR", "MALO"),
       allowNull: false,
-      defaultValue: "Bueno",
+      defaultValue: "BUENO",
       validate: {
         notEmpty: {
           msg: "La condición de la herramienta no puede estar vacía",
         },
         isIn: {
-          args: [["Bueno", "Regular", "Malo"]],
-          msg: "La condición debe ser 'Bueno', 'Regular' o 'Malo'",
+          args: [["BUENO", "REGULAR", "MALO"]],
+          msg: "La condición debe ser 'BUENO', 'REGULAR' o 'MALO'",
         },
       },
     },
@@ -76,4 +76,4 @@ Herramienta.belongsTo(Subcategoria, { foreignKey: "SubcategoriaId" });
 Herramienta.belongsTo(Estado, { foreignKey: "EstadoId" });
 Herramienta.belongsTo(Usuario, { foreignKey: "UsuarioId" });
 
-export default Herramienta
+export default Herramienta;

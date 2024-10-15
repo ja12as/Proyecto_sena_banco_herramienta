@@ -112,37 +112,63 @@ const AddFichasModal = ({ isOpen, onClose, ficha }) => {
 
   const handleCreate = async () => {
     const { NumeroFicha, Jornada, Programa, EstadoId } = formData;
+  
+    // Validar cada campo con mensajes personalizados
     const NumeroFichaError = validateInput("NumeroFicha", NumeroFicha);
     const JornadaError = validateInput("Jornada", Jornada);
     const ProgramaError = validateInput("Programa", Programa);
-
+  
     if (NumeroFichaError || JornadaError || ProgramaError) {
       setFormErrors({
         NumeroFicha: NumeroFichaError,
         Jornada: JornadaError,
         Programa: ProgramaError,
       });
-      showToastError("Por favor, corrige los errores antes de agregar.");
-      return;
+  
+      // Mostrar mensajes personalizados según el campo con error
+      if (NumeroFichaError) {
+        showToastError("El número de ficha es inválido o está vacío.");
+      }
+      if (JornadaError) {
+        showToastError("Por favor, selecciona una jornada válida.");
+      }
+      if (ProgramaError) {
+        showToastError("El campo de programa es obligatorio y debe ser válido.");
+      }
+      
+      return; // Detener el proceso si hay errores
     }
-
+  
+    // Verificar campos obligatorios
     if (!NumeroFicha || !Programa || !Jornada || !EstadoId) {
-      showToastError("Todos los campos son obligatorios.");
+      if (!NumeroFicha) {
+        showToastError("El campo 'Número de Ficha' es obligatorio.");
+      }
+      if (!Programa) {
+        showToastError("El campo 'Programa' es obligatorio.");
+      }
+      if (!Jornada) {
+        showToastError("El campo 'Jornada' es obligatorio.");
+      }
+      if (!EstadoId) {
+        showToastError("El campo 'Estado' es obligatorio.");
+      }
       return;
     }
-
+  
     setLoading(true);
     try {
       const token = document.cookie.replace(
         /(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/,
         "$1"
       );
+  
       const response = await api.post("/Fichas", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
+  
       if (response.status === 200) {
         toast.success("Ficha agregada exitosamente", {
           position: "top-right",
@@ -158,18 +184,15 @@ const AddFichasModal = ({ isOpen, onClose, ficha }) => {
           onClose(response.data);
         }, 2000);
       } else {
-        showToastError(
-          "Ocurrió un error!, por favor intenta con un Programa o Jornada diferente."
-        );
+        showToastError("Error al agregar la ficha. Verifica los datos e intenta nuevamente.");
       }
     } catch (error) {
-      showToastError(
-        "Ocurrió un error!, por favor intenta con un Programa o Jornada diferente."
-      );
+      showToastError("Ocurrió un error inesperado. Intenta con un Programa o Jornada diferente.");
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div

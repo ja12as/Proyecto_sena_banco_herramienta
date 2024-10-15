@@ -63,12 +63,23 @@ const PedidosIntructores = () => {
 
   const validateInput = (name, value) => {
     let errorMessage = "";
+  
+    // Validar que solo ingresen nombres en los campos de nombres
     if (["area", "jefeOficina", "servidorAsignado"].includes(name)) {
-      const nameRegex = /^[A-Za-z\s]+$/;
-      if (!nameRegex.test(value) || /\d/.test(value)) {
+      const nameRegex = /^[A-Za-z\s]+$/; // Solo letras y espacios permitidos
+      if (!nameRegex.test(value)) {
         errorMessage = "No puede contener números o caracteres especiales.";
       }
     }
+  
+    // Validar el formato de correo electrónico
+    if (name === "correo") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Expresión regular para correos
+      if (!emailRegex.test(value)) {
+        errorMessage = "Por favor, ingresa un correo electrónico válido.";
+      }
+    }
+  
     return errorMessage;
   };
 

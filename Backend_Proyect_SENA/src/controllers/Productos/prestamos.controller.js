@@ -8,6 +8,10 @@ import Estado from "../../models/Estado.js";
 import Prestamo from "../../models/Prestamos.js";
 import PrestamoHerramienta from "../../models/intermediaria.js";
 import cronJob from "node-cron";
+import nodemailer from "nodemailer";
+
+
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -171,7 +175,7 @@ export const actualizarPrestamo = async (req, res) => {
 
     // Si se ha subido un archivo de firma, actualizar la ruta de la firma
     if (req.file && filename) {
-      const firmaPath = path.join(__dirname, "../../uploads", filename);
+      const firmaPath = `/uploads/${filename}`; 
       prestamo.firma = firmaPath;
     } else {
       console.log("No se ha subido ningún archivo de firma.");
@@ -195,5 +199,105 @@ export const actualizarPrestamo = async (req, res) => {
     }
     console.error("Error al actualizar el préstamo:", error);
     return res.status(500).json({ message: "Error al actualizar el préstamo." });
+  }
+};
+
+
+const enviarCorreoNotificacion = async (prestamo) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "inventariodelmobiliario@gmail.com",
+      pass: "xieo yngh kruv rsta", // Asegúrate de mantener la seguridad de esta contraseña
+    },
+  });
+
+  const mailOptions = {
+    from: 'inventariodelmobiliario@gmail.com',
+    to: prestamo.correo, 
+    subject: 'Notificación de entrega de herramientas',
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+        <h2 style="color: #007BFF;">¡Hola ${prestamo.servidorAsignado}!</h2>
+        <p>
+          Nos complace informarte que tu préstamo de herramientas ha sido entregado exitosamente.
+        </p>
+        <p style="font-weight: bold; color: #28A745;">
+          ¡Gracias por tu confianza!
+        </p>
+      </div>
+    `,
+  };
+
+  // Enviar el correo
+  await transporter.sendMail(mailOptions);
+};
+
+export const entregarHerramientas = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const prestamo = await Prestamo.findOne({
+      where: { id },
+      include: [
+        {
+          model: Herramienta,
+          through: { attributes: [] },
+        },
+      ],
+    });
+
+    if (!prestamo) {
+      return res.status(404).json({ mensaje: "Préstamo no encontrado" });
+    }
+
+    if (prestamo.EstadoId === 7) {
+      return res.status(400).json({ mensaje: "El préstamo ya ha sido entregado" });
+    }
+
+    if (!prestamo.firma) {
+      return res.status(400).json({ mensaje: "El préstamo aún no ha sido firmado por el coordinador" });
+    }
+
+    const herramientas = prestamo.Herramienta || [];
+
+    if (herramientas.length === 0) {
+      return res.status(400).json({ mensaje: "No hay herramientas asociadas a este préstamo" });
+    }
+
+    for (const herramienta of herramientas) {
+      if (herramienta.estado === "EN USO") {
+        return res.status(400).json({ mensaje: `La herramienta con ID ${herramienta.id} ya está en uso` });
+      }
+
+      await herramienta.update({ EstadoId: 4 }); // Cambia el estado a "EN USO"
+
+      const existeRelacion = await PrestamoHerramienta.findOne({
+        where: {
+          PrestamoId: prestamo.id,
+          HerramientumId: herramienta.id,
+        },
+      });
+
+      if (!existeRelacion) {
+        await PrestamoHerramienta.create({
+          PrestamoId: prestamo.id,
+          HerramientumId: herramienta.id,
+        });
+      }
+    }
+
+    // Actualizar el estado del préstamo a "ENTREGADO" (ID 7)
+    prestamo.EstadoId = 7;
+    prestamo.fechaEntrega = new Date(); // Añade la fecha de entrega actual
+    await prestamo.save();
+
+    // Enviar correo de notificación
+    await enviarCorreoNotificacion(prestamo);
+
+    res.status(200).json({ mensaje: "Herramientas entregadas con éxito" });
+  } catch (error) {
+    console.error("Error al entregar las herramientas:", error);
+    return res.status(500).json({ mensaje: "Error al entregar las herramientas", error: error.message });
   }
 };

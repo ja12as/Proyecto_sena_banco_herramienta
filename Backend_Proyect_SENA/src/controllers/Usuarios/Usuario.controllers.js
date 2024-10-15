@@ -8,7 +8,6 @@ import Estado from "../../models/Estado.js";
 import DetallePermiso from "../../models/DetallePermiso.js";
 import { createNotification } from "../../helpers/Notificacion.helpers.js";
 
-
 config();
 
 const DOCUMENTO_ADMIN = process.env.DOCUMENTO_ADMIN;
@@ -16,6 +15,7 @@ const DOCUMENTO_ADMIN = process.env.DOCUMENTO_ADMIN;
 export const crearUsuario = async (req, res) => {
   try {
     const { nombre, correo, Documento, password, permisos, RolId, EstadoId } = req.body;
+    const UsuarioId = req.usuario.id;
 
     const consultaId = await Usuario.findByPk(req.body.id);
     if (consultaId) {
@@ -57,7 +57,7 @@ export const crearUsuario = async (req, res) => {
 
     await crearUser.save();
 
-    const mensajeNotificacion = `El usuario ${UsuarioId} agregó un nuevo usuario (${crearUser.nombre}, documento: ${crearUser.Documento}) el ${new Date().toLocaleDateString()}.`;
+    const mensajeNotificacion = `El usuario ${UsuarioId.nombre} agregó un nuevo usuario (${crearUser.nombre}, documento: ${crearUser.Documento}) el ${new Date().toLocaleDateString()}.`;
     await createNotification(req.usuario.id, 'CREATE', mensajeNotificacion);
 
 

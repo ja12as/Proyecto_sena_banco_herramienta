@@ -172,13 +172,14 @@ export const buscarHerramientas = async (req, res) => {
 
         const herramientas = await Herramienta.findAll({
             where: {
-                nombre: {
-                    [Op.like]:`%${query}%`,
-                },
-                EstadoId: 1,
+              nombre: {
+                [Op.like]:`%${query}%`,
+              },
+              EstadoId: 1, // Solo se debe buscar herramientas con EstadoId 1
             },
             attributes: ["id", "nombre", "codigo"],
-        });
+          });
+          
 
         if (herramientas.length === 0) {
             return res.status(404).json({ message: "No se encontraron herramientas." });

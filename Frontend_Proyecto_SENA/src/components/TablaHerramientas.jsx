@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { api } from "../api/token";
+import { toast } from "react-toastify"; // Importar toast
+
 
 const TablaHerramientas = ({ accordionStates, handleHerramientaChange, herramientas }) => {
   const [sugerenciasherramientas, setSugerenciasherramientas] = useState({});
@@ -17,7 +19,7 @@ const TablaHerramientas = ({ accordionStates, handleHerramientaChange, herramien
 
   const addRow = () => {
     const newHerramienta = {
-      HerramientaId: "",
+      HerramientumId: "",
       nombre: "",
       codigo: "", // Agregar campo 'codigo'
       observaciones: "",
@@ -36,16 +38,24 @@ const TablaHerramientas = ({ accordionStates, handleHerramientaChange, herramien
     if (query.length > 2) {
       try {
         const response = await api.get(`/herramienta/busqueda?query=${query}`);
-
+  
         if (Array.isArray(response.data)) {
           const herramientasConUnidad = response.data.map((producto) => ({
             ...producto,
           }));
-
-          setSugerenciasherramientas((prev) => ({
-            ...prev,
-            [index]: herramientasConUnidad,
-          }));
+  
+          // Verificar si hay alguna herramienta en uso (EstadoId: 4)
+          const herramientaEnUso = herramientasConUnidad.find((herramienta) => herramienta.EstadoId === 4);
+          if (herramientaEnUso) {
+            // Mostrar un error y no añadir la herramienta en estado 4 a las sugerencias
+            showToastError(`La herramienta ${herramientaEnUso.nombre} no se encuentra disponible porque está prestada.`);
+          } else {
+            // Si no hay herramientas en uso, actualizar las sugerencias
+            setSugerenciasherramientas((prev) => ({
+              ...prev,
+              [index]: herramientasConUnidad,
+            }));
+          }
         } else {
           setSugerenciasherramientas((prev) => ({
             ...prev,
@@ -54,6 +64,7 @@ const TablaHerramientas = ({ accordionStates, handleHerramientaChange, herramien
         }
       } catch (error) {
         console.error("Error al buscar herramientas:", error);
+        showToastError("Error al obtener las herramientas.");
         setSugerenciasherramientas((prev) => ({
           ...prev,
           [index]: [],
@@ -66,10 +77,23 @@ const TablaHerramientas = ({ accordionStates, handleHerramientaChange, herramien
       }));
     }
   };
+  
+  
+  const showToastError = (message) => {
+    toast.error(message, {
+      position: "top-right",
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+  };
 
-  const handleSelectSuggestion = (index, HerramientaId, nombre, codigo) => { // Añadir 'codigo'
+
+  const handleSelectSuggestion = (index, HerramientumId, nombre, codigo) => { // Añadir 'codigo'
     const newherramientas = [...herramientas];
-    newherramientas[index].HerramientaId = HerramientaId;  
+    newherramientas[index].HerramientumId = HerramientumId;  
     newherramientas[index].nombre = nombre; 
     newherramientas[index].codigo = codigo; // Asignar el 'codigo' de la herramienta seleccionada
     handleHerramientaChange(newherramientas);

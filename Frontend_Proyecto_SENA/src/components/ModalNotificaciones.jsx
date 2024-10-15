@@ -4,11 +4,8 @@ import { ToastContainer } from "react-toastify";
 import { api } from "../api/token";
 import "react-toastify/dist/ReactToastify.css";
 
-const ModalNotificaciones = ({ isOpen, onClose }) => {
-  const [notificaciones, setNotificaciones] = useState([
-    { id: 1, mensaje: "El usuario Admin agregó una nueva ficha", nueva: true },
-    { id: 2, mensaje: "El usuario Admin agregó una nueva ficha", nueva: true },
-  ]);
+const ModalNotificaciones = ({ isOpen, onClose, onNewNotifications }) => {
+  const [notificaciones, setNotificaciones] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,18 +15,17 @@ const ModalNotificaciones = ({ isOpen, onClose }) => {
   }, [isOpen]);
 
   const fetchNotificaciones = async () => {
+    setLoading(true);
     try {
       const response = await api.get("/notificaciones");
       if (response.status === 200) {
-        setNotificaciones((prevNotificaciones) => [
-          ...response.data.notificaciones,
-          ...prevNotificaciones,
-        ]);
+        setNotificaciones(response.data);
+
+        // Calcular cuántas notificaciones son nuevas
+        const nuevas = response.data.filter((n) => n.nueva).length;
+        onNewNotifications(nuevas); // Actualizamos el número de notificaciones nuevas
       } else {
-        console.error(
-          "Error al cargar las notificaciones:",
-          response.data.message
-        );
+        console.error("Error al cargar las notificaciones:", response.data.message);
       }
     } catch (error) {
       console.error("Error al cargar las notificaciones:", error);
@@ -77,9 +73,9 @@ const ModalNotificaciones = ({ isOpen, onClose }) => {
                     }`}
                   ></div>
                   <div className="flex-1">
-                    <p className="text-lg">{notificacion.mensaje}</p>
+                    <p className="text-lg">{notificacion.message}</p>
                     <p className="text-base text-gray-500">
-                      {notificacion.fecha}
+                      {new Date(notificacion.createdAt).toLocaleString()}
                     </p>
                   </div>
                 </div>
