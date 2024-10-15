@@ -6,6 +6,8 @@ import Rol from "../../models/Rol.js";
 import Permiso from "../../models/Permiso.js";
 import Estado from "../../models/Estado.js";
 import DetallePermiso from "../../models/DetallePermiso.js";
+import { createNotification } from "../../helpers/Notificacion.helpers.js";
+
 
 config();
 
@@ -54,6 +56,10 @@ export const crearUsuario = async (req, res) => {
     });
 
     await crearUser.save();
+
+    const mensajeNotificacion = `El usuario ${UsuarioId} agregó un nuevo usuario (${crearUser.nombre}, documento: ${crearUser.Documento}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(req.usuario.id, 'CREATE', mensajeNotificacion);
+
 
     if (permisos && permisos.length > 0) {
       const permisosValidos = await Permiso.findAll({
@@ -204,6 +210,8 @@ export const Putusuario = async (req, res) => {
     }
 
     await consultarusuario.update(req.body);
+    const mensajeNotificacion = `El usuario ${req.usuario.nombre} edito el usuario (${consultarusuario.nombre}, documento: ${consultarusuario.Documento}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(req.usuario.id, 'UPDATE', mensajeNotificacion);
 
     if (permisos && permisos.length > 0) {
       const permisosAsignados = await DetallePermiso.findAll({

@@ -6,8 +6,8 @@ import Estado from "../../models/Estado.js";
 
 export const crearHerramienta = async (req, res) => {
     try {
-        const { nombre, codigo, marca, condicion, observaciones, UsuarioId, EstadoId, SubcategoriaId } = req.body;
-
+        const { nombre, codigo, marca, condicion, observaciones, EstadoId, SubcategoriaId } = req.body;
+        const UsuarioId = req.usuario.id;
         const consultaCodigo = await Herramienta.findOne({ where: { codigo } });
         if (consultaCodigo) {
             return res.status(400).json({ error: 'El código de la herramienta ya existe' });
@@ -30,7 +30,7 @@ export const crearHerramienta = async (req, res) => {
         }
 
         let estadoId = EstadoId;
-        if (condicion === 'Malo') {
+        if (condicion === 'MALO') {
             const estadoInactivo = await Estado.findOne({ where: { estadoName: 'INACTIVO' } });
             if (!estadoInactivo) {
                 return res.status(500).json({ error: 'Estado INACTIVO no encontrado' });
@@ -49,7 +49,7 @@ export const crearHerramienta = async (req, res) => {
             marca,
             condicion,
             observaciones,
-            UsuarioId,
+            UsuarioId: UsuarioId, 
             EstadoId: estadoId,
             SubcategoriaId
         });
@@ -92,46 +92,11 @@ export const getHerramienta = async (req, res) =>{
 };
 
 
-
-
-export const obtenerCodigosPorNombre = async (req, res) => {
-    try {
-        const { nombre } = req.query;
-
-        if (!nombre) {
-            return res.status(400).json({ error: 'Se requiere el parámetro "nombre"' });
-        }
-
-        const herramientas = await Herramienta.findAll({
-            where: {
-                nombre: {
-                    [Op.iLike]: `%${nombre}%` 
-                },
-                estado: 'ACTIVO'
-            },
-            attributes: ['codigo']
-        });
-
-        if (herramientas.length === 0) {
-            return res.status(404).json({ message: 'No se encontraron herramientas con ese nombre' });
-        }
-
-        const codigos = herramientas.map(herramienta => herramienta.codigo);
-        const codigosUnicos = [...new Set(codigos)]; 
-
-        res.status(200).json(codigosUnicos);
-    } catch (error) {
-        console.error("Error al obtener códigos de herramientas:", error);
-        res.status(500).json({ error: 'Error al obtener códigos de herramientas' });
-    }
-};
-
-
-
 export const putHerramienta = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nombre, codigo, marca, condicion, observaciones, UsuarioId, EstadoId, SubcategoriaId } = req.body;
+        const { nombre, codigo, marca, condicion, observaciones, EstadoId, SubcategoriaId } = req.body;
+        const UsuarioId = req.usuario.id;
 
         const herramienta = await Herramienta.findByPk(id);
         if (!herramienta) {
@@ -166,7 +131,7 @@ export const putHerramienta = async (req, res) => {
             herramienta.SubcategoriaId = SubcategoriaId;
         }
 
-        if (condicion === 'Malo') {
+        if (condicion === 'MALO') {
             const estadoInactivo = await Estado.findOne({ where: { estadoName: 'INACTIVO' } });
             if (!estadoInactivo) {
                 return res.status(500).json({ error: 'Estado INACTIVO no encontrado' });
@@ -185,7 +150,7 @@ export const putHerramienta = async (req, res) => {
         herramienta.marca = marca || herramienta.marca;
         herramienta.condicion = condicion || herramienta.condicion;
         herramienta.observaciones = observaciones || herramienta.observaciones;
-        herramienta.UsuarioId = UsuarioId || herramienta.UsuarioId;
+        herramienta.UsuarioId = UsuarioId;
 
         await herramienta.save();
 
@@ -195,8 +160,8 @@ export const putHerramienta = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
- 
-// Buscar herramientas por nombre
+
+
 export const buscarHerramientas = async (req, res) => {
     try {
         const { query } = req.query;
@@ -208,11 +173,11 @@ export const buscarHerramientas = async (req, res) => {
         const herramientas = await Herramienta.findAll({
             where: {
                 nombre: {
-                    [Op.like]: `%${query}%`,
+                    [Op.like]:`%${query}%`,
                 },
-                EstadoId: 1, // Suponiendo que EstadoId 1 significa 'ACTIVO'
+                EstadoId: 1,
             },
-            attributes: ["id", "nombre", "marca"],
+            attributes: ["id", "nombre", "codigo"],
         });
 
         if (herramientas.length === 0) {

@@ -50,7 +50,6 @@ export const actualizarSalidaProducto = async (req, res) => {
         return res.status(404).json({ message: `Producto con id ${producto.ProductoId} no encontrado.` });
       }
 
-     
       if (productoData.cantidadActual < producto.cantidadSalida) {
         return res.status(400).json({ message: `No hay suficiente cantidad en inventario para el producto ${producto.ProductoId}.` });
       }
@@ -85,21 +84,83 @@ export const actualizarSalidaProducto = async (req, res) => {
   }
 };
 
+
+
 const enviarCorreoNotificacion = async (pedido) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail", 
-    auth: {
-      user: "inventariodelmobiliario@gmail.com",
-      pass: "xieo yngh kruv rsta", 
-    },
+  // Obtener los productos del pedido junto con la información de la tabla intermedia
+  const pedidoConProductos = await Pedido.findByPk(pedido.id, {
+    include: [
+      {
+        model: Producto,
+        through: {
+          attributes: ['cantidadSalida', 'cantidadSolicitar', 'observaciones'],
+        },
+      },
+    ],
   });
 
+  // Construir el contenido HTML del correo
+  let tablaProductos = `
+    <table border="1" cellpadding="5" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cantidad Solicitada</th>
+          <th>Cantidad Entregada</th>
+          <th>Observaciones</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  // Agregar una fila para cada producto
+  pedidoConProductos.Productos.forEach((producto) => {
+    const { nombre } = producto; // Nombre del producto
+    const { cantidadSolicitar, cantidadSalida, observaciones} = producto.PedidoProducto; // Cantidad solicitada y entregada
+
+    tablaProductos += `
+      <tr>
+        <td>${nombre}</td>
+        <td>${cantidadSolicitar}</td>
+        <td>${cantidadSalida}</td>
+        <td>${observaciones}</td>
+      </tr>`;
+  });
+
+  tablaProductos += `
+      </tbody>
+    </table>`;
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail", 
+      auth: {
+        user: "inventariodelmobiliario@gmail.com",
+        pass: "xieo yngh kruv rsta", 
+      },
+    });
+  // Contenido HTML del correo
   const mailOptions = {
     from: 'inventariodelmobiliario@gmail.com',
     to: pedido.correo, 
     subject: 'Notificación de salida de productos',
-    text:` El pedido con ID ${pedido.id} ha sido actualizado y está listo para ser recogido.`,
+    html: `
+    <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+      <h2 style="color: #007BFF;">¡Hola ${pedido.servidorAsignado}!</h2>
+      <p>
+        Nos complace informarte que tu pedido del día <strong>${pedido.createdAt.toLocaleDateString()}</strong> para la ficha 
+        <strong>${pedido.codigoFicha}</strong> ya está listo para ser recogido.
+      </p>
+      <p>
+        Puedes pasar por el horario del personal del banco de herramientas. 
+      </p>
+      <p style="font-weight: bold; color: #28A745;">
+        ¡Gracias por tu confianza!
+      </p>
+    </div>
+    <p>A continuación se muestran los detalles de los productos:</p>
+    ${tablaProductos}
+  `,
   };
 
+  // Enviar el correo
   await transporter.sendMail(mailOptions);
-};
+}; 

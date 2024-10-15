@@ -8,17 +8,10 @@ import Prestamo from "./Prestamos.js"; // Importa el modelo de Prestamo
 const PrestamoHerramienta = conexion.define(
   "PrestamoHerramienta",
   {
-    cantidadSolicitar: {
+    id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 1,
-      validate: {
-        min: 1,
-        isInt: true,
-      },
-    },
-    fechaDevolucion: {
-      type: DataTypes.DATE,
+      primaryKey: true,
+      autoIncrement: true,
       allowNull: false,
     },
     observaciones: {

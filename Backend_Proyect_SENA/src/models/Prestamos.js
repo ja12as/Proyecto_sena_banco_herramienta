@@ -46,20 +46,20 @@ const Prestamo = conexion.define(
     },
     fechaDevolucion: {
       type: DataTypes.DATE,
+      allowNull: true,
+    },
+    fechaEntrega: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    fechaPrestamos: {
+      type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: DataTypes.NOW, 
     },
     observaciones: {
       type: DataTypes.STRING,
       allowNull: true,
-    },
-    EstadoId: {
-      // Agrega el campo para el estado
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: Estado, // Relaciona con el modelo Estado
-        key: "id",
-      },
     },
     firma: {
       type: DataTypes.STRING, // Cambia el tipo si necesitas algo diferente

@@ -12,7 +12,6 @@ ProductoRouter.get("/producto", rutaProtegida, getAllProductos);
 ProductoRouter.get("/producto/busqueda", BusquedaProductos);
 ProductoRouter.get("/producto/:id", rutaProtegida, getProductos );
 ProductoRouter.post("/producto", rutaProtegida, validarPermiso('Crear Producto') ,validarSchemas(ProductoSchemas), crearProductos);
-ProductoRouter.put("/producto/:id", rutaProtegida, validarPermiso(''),  putProductos);
-
+ProductoRouter.put("/producto/:id", rutaProtegida, validarPermiso('Modificar Producto'),  putProductos);
 
 export default ProductoRouter; 

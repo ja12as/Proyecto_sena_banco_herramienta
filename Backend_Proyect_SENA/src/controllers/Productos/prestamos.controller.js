@@ -7,6 +7,7 @@ import Herramienta from "../../models/Herramientas.js";
 import Estado from "../../models/Estado.js";
 import Prestamo from "../../models/Prestamos.js";
 import PrestamoHerramienta from "../../models/intermediaria.js";
+import cronJob from "node-cron";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -26,15 +27,11 @@ export const crearPrestamo = async (req, res) => {
   console.log("Datos recibidos para crear el préstamo:", req.body);
 
   try {
-    // Obtener el estado "PENDIENTE"
-    const estadoPendiente = await Estado.findOne({
-      where: { estadoName: "PENDIENTE" },
-    });
+    const estadoPendiente = await Estado.findOne({ where: { estadoName: "PENDIENTE" } });
     if (!estadoPendiente) {
-      return res.status(404).json({ message: "El estado 'PENDIENTE' no existe." });
+      return res.status(404).json({ message: "No se encontró el estado 'PENDIENTE'. Asegúrate de que esté creado en la base de datos." });
     }
 
-    // Crear el nuevo préstamo sin incluir 'fechaDevolucion'
     const nuevoPrestamo = await Prestamo.create({
       codigoFicha,
       area,
@@ -46,43 +43,52 @@ export const crearPrestamo = async (req, res) => {
       EstadoId: estadoPendiente.id,
     });
 
-    // Procesar las herramientas
     for (const herramienta of herramientas) {
-      const { HerramientaId, fechaDevolucion, observaciones } = herramienta;
-
-      // Validar HerramientaId
-      if (!HerramientaId) {
-        return res.status(400).json({ message: "HerramientaId es obligatorio." });
+      const herramientaData = await Herramienta.findByPk(herramienta.HerramientumId);
+      if (!herramientaData) {
+        return res.status(404).json({ message: `Herramienta con ID ${herramienta.HerramientumId} no encontrada. Verifica que el ID sea correcto.` });
       }
 
-      // Validar fecha de devolución
-      if (!fechaDevolucion) {
-        return res.status(400).json({ message: "La fecha de devolución es obligatoria." });
+      try {
+        await PrestamoHerramienta.create({
+          PrestamoId: nuevoPrestamo.id,
+          HerramientumId: herramienta.HerramientumId,
+          observaciones: herramienta.observaciones || null,
+        });
+      } catch (error) {
+        if (error.original && error.original.code === '23502') {
+          return res.status(400).json({ message: 'Error al insertar en PrestamosHerramientas: Falta un campo requerido.' });
+        }
+        return res.status(500).json({ message: 'Error al agregar la herramienta al préstamo', error: error.message });
       }
-
-      // Crear la entrada en la tabla intermedia
-      await PrestamoHerramienta.create({
-        PrestamoId: nuevoPrestamo.id,
-        HerramientaId,
-        fechaDevolucion,
-        observaciones,
-      });
     }
+
+    cronJob.schedule("0 0 * * *", async () => {
+      const fechaLimite = new Date();
+      fechaLimite.setDate(fechaLimite.getDate() - 3);
+
+      const prestamoPendientes = await Prestamo.findAll({
+        where: {
+          firma: null,
+          createdAt: { [Op.lt]: fechaLimite },
+        },
+      });
+
+      if (prestamoPendientes.length > 0) {
+        await Prestamo.destroy({
+          where: { id: { [Op.in]: prestamoPendientes.map((p) => p.id) } },
+        });
+      }
+    });
 
     return res.status(201).json({ message: "Préstamo creado con éxito", prestamo: nuevoPrestamo });
   } catch (error) {
-    console.error("Error al crear el préstamo:", error);
-    if (error instanceof ValidationError) {
-      return res.status(400).json({
-        message: "Error de validación",
-        details: error.errors.map((err) => err.message),
-      });
-    }
-    return res.status(500).json({ message: "Error al crear el préstamo." });
+    console.error('Error al crear préstamo:', error);
+    return res.status(500).json({ message: 'Ocurrió un error inesperado.', error: error.message });
   }
 };
 
-// Obtener todos los préstamos
+
 export const getAllPrestamos = async (req, res) => {
   try {
     const prestamos = await Prestamo.findAll({
@@ -90,11 +96,8 @@ export const getAllPrestamos = async (req, res) => {
         {
           model: Herramienta,
           through: {
-            attributes: [
-              "cantidadSolicitar",
-              "fechaDevolucion",
-              "observaciones",
-            ],
+            model: PrestamoHerramienta,
+            attributes: ["observaciones",],
           },
         },
         { model: Estado },
@@ -109,6 +112,8 @@ export const getAllPrestamos = async (req, res) => {
   }
 };
 
+
+// Obtener un préstamo específico
 // Obtener un préstamo específico
 export const getPrestamo = async (req, res) => {
   const { id } = req.params;
@@ -119,11 +124,8 @@ export const getPrestamo = async (req, res) => {
         {
           model: Herramienta,
           through: {
-            attributes: [
-              "cantidadSolicitar",
-              "fechaDevolucion",
-              "observaciones",
-            ],
+            model: PrestamoHerramienta,
+            attributes: ["observaciones"],
           },
         },
         { model: Estado },
@@ -131,9 +133,7 @@ export const getPrestamo = async (req, res) => {
     });
 
     if (!prestamo) {
-      return res
-        .status(404)
-        .json({ message: `Préstamo con id ${id} no encontrado.` });
+      return res.status(404).json({ message: `Préstamo con id ${id} no encontrado.` });
     }
 
     return res.status(200).json(prestamo);
@@ -142,6 +142,7 @@ export const getPrestamo = async (req, res) => {
     return res.status(500).json({ message: "Error al obtener el préstamo." });
   }
 };
+
 
 // Actualizar un préstamo
 export const actualizarPrestamo = async (req, res) => {
