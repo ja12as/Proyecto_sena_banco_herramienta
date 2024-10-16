@@ -6,11 +6,11 @@ import "react-toastify/dist/ReactToastify.css";
 import fondo from "/logoSena.png";
 import siga from "/Siga.png";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import FirmasDos from "./../components/FirmasDos";
 import SidebarCoord from "../components/SidebarCoord";
 import Home from "../components/Home";
 import TablaPrestamosFirma from "../components/TablaPrestamosFirma";
-import FirmaPrestamosEntrega from "../components/FirmaPrestamoEntrega";
+import FirmaPrestamosEntrega from "./../components/FirmaPrestamoEntrega";
+
 
 const FirmaPrestamos = () => {
   const [sidebarToggleCoord, setsidebarToggleCoord] = useState(false);
@@ -21,7 +21,7 @@ const FirmaPrestamos = () => {
   const [loading, setLoading] = useState(false);
   const [firmaImagen, setFirmaImagen] = useState(null);
   const [formData, setFormData] = useState({
-    firmaPrestamos: "",
+    fechaPrestamos: "",
     servidorAsignado: "",
     codigoFicha: "",
     area: "",
@@ -75,7 +75,7 @@ const FirmaPrestamos = () => {
 
           const prestamosFormatted = {
             id: data.id,
-            firmaPrestamos: data.firmaPrestamos,
+            fechaPrestamos: data.fechaPrestamos,
             codigoFicha: data.codigoFicha,
             jefeOficina: data.jefeOficina,
             cedulaJefeOficina: data.cedulaJefeOficina,
@@ -85,7 +85,7 @@ const FirmaPrestamos = () => {
           };
           setPedidoData(prestamosFormatted);
           setFormData({
-            fecha: formatDateForInput(data.firmaPrestamos),
+            fecha: formatDateForInput(data.fechaPrestamos),
             codigoFicha: data.codigoFicha,
             area: data.area,
             jefeOficina: data.jefeOficina,
@@ -148,7 +148,7 @@ const FirmaPrestamos = () => {
           draggable: true,
           progress: undefined,
         });
-        navigate('/autPedidos'); 
+        navigate('/autPrestamos'); 
       } else {
         toast.error("Error al enviar el prestamo.", {
           position: "top-right",
@@ -432,6 +432,7 @@ const FirmaPrestamos = () => {
                     <div className="flex flex-col rounded-lg w-full">
                       <div className="flex flex-row justify-center w-full mb-4">
                         <TablaPrestamosFirma
+                        herramientaId={herramientaId}
                           accordionStates={accordionStates}
                           toggleAccordion={toggleAccordion}
                         />

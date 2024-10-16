@@ -414,7 +414,7 @@ const GestionarPrestamos = () => {
                         onClick={() => toggleAccordion("productos")}
                         className="font-bold text-lg py-2 flex justify-between items-center w-full"
                     >
-                        <span>Pedidos</span>
+                        <span>Prestamo</span>
                         <ExpandMoreIcon className="mr-2" />
                     </button>
 
@@ -434,25 +434,25 @@ const GestionarPrestamos = () => {
 
                     {/* Firmas */}
                     <div className="flex flex-col rounded-lg w-full bg-white px-8 mx-auto border-2 border-black mb-4">
-                  <button
-                    onClick={() => toggleAccordion("firmas")}
-                    className="font-bold text-lg py-2 flex justify-between items-center w-full"
-                  >
-                    <span>Firmas</span>
-                    <ExpandMoreIcon className="mr-2" />
-                  </button>
+                        <button
+                            onClick={() => toggleAccordion("firmas")}
+                            className="font-bold text-lg py-2 flex justify-between items-center w-full"
+                        >
+                            <span>Firmas</span>
+                            <ExpandMoreIcon className="mr-2" />
+                        </button>
 
-                  {accordionStates.firmas && (
-                    <div className="flex flex-col rounded-lg w-full">
-                      <div className="flex flex-row justify-between w-auto mb-4">
-                        <FirmaPrestamosEntrega
-                          prestamoId={prestamoId}
-                          accordionStates={accordionStates}
-                          toggleAccordion={toggleAccordion}
-                        />
-                      </div>
-                    </div>
-                  )}
+                        {accordionStates.firmas && (
+                            <div className="flex flex-col rounded-lg w-full">
+                            <div className="flex flex-row justify-between w-auto mb-4">
+                                <FirmaPrestamosEntrega
+                                prestamoId={prestamoId}
+                                accordionStates={accordionStates}
+                                toggleAccordion={toggleAccordion}
+                                />
+                            </div>
+                            </div>
+                        )}
                 </div>
 
                     {/* Botones */}

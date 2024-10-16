@@ -5,7 +5,7 @@ import { api } from "../api/token";
 import MUIDataTable from "mui-datatables";
 import "react-toastify/dist/ReactToastify.css";
 
-const TablaPrestamosGestion = ({ actualizarFechaEntrega }) => {
+const TablaPrestamosGestion = () => {
     const [herramientas, setHerramientas] = useState([]);
     const location = useLocation();
     const { prestamoId } = location.state || {};
@@ -29,30 +29,35 @@ const TablaPrestamosGestion = ({ actualizarFechaEntrega }) => {
     useEffect(() => {
         const fetchherramientasDelPedido = async () => {
             if (!prestamoId) return;
-    
+        
             try {
                 setLoading(true);
                 const response = await api.get(`/prestamos/${prestamoId}`);
-                const herramientasData = response.data.Herramienta; // Ajustamos aquí el campo
-    
+                console.log("Respuesta completa del préstamo:", response.data); 
+                const herramientasData = response.data.Herramienta || []; 
+                const prestamo = response.data;
+                
                 const formatDate = (dateString) => {
-                    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-                    return new Date(dateString).toLocaleDateString(undefined, options);
+                    const date = new Date(dateString);
+                    return isNaN(date.getTime()) ? "Fecha no válida" : date.toLocaleDateString(); // Puedes personalizar el formato
                 };
                 
                 const herramientasFormatted = herramientasData.map((herramienta, index) => {
+                    const fechaEntrega = prestamo.fechaEntrega ? formatDate(prestamo.fechaEntrega) : "Sin fecha de entrega";
+
+                    console.log("Fecha de entrega procesada:", fechaEntrega); // Para verificar el valor procesado
+                
                     return {
                         item: index + 1,
                         nombre: herramienta.nombre,
                         codigo: herramienta.codigo,
                         HerramientumId: herramienta.id,
                         observaciones: herramienta.PrestamoHerramienta?.observaciones || "Sin observaciones",
-                        fechaEntrega: herramienta.fechaEntrega ? formatDate(herramienta.fechaEntrega) : "Sin fecha",
+                        fechaEntrega, // Usa el valor ya procesado
                     };
                 });
-    
+                console.log("Datos formateados:", herramientasFormatted); // Para verificar el resultado final
                 setData(herramientasFormatted);
-                console.log("Datos actualizados:", herramientasFormatted);
                 
             } catch (err) {
                 console.error("Error fetching herramientas:", err);
@@ -126,24 +131,25 @@ const TablaPrestamosGestion = ({ actualizarFechaEntrega }) => {
                 customBodyRender: (value) => <div className="text-center">{value}</div>,
             },
         },
-       {
-    name: "fechaEntrega",
-    label: "FECHA ENTREGA",
-    options: {
-        customHeadRender: (columnMeta) => (
-            <th
-                key={columnMeta.label}
-                className="text-center bg-white text-black uppercase text-xs font-bold"
-            >
-                {columnMeta.label}
-            </th>
-        ),
-        customBodyRender: (value) => {
-            return <div className="text-center">{value === "Sin fecha" ? "Fecha pendiente" : value}</div>;
+        {
+            name: "fechaEntrega",
+            label: "FECHA ENTREGA",
+            options: {
+                customHeadRender: (columnMeta) => (
+                    <th
+                        key={columnMeta.label}
+                        className="text-center bg-white text-black uppercase text-xs font-bold"
+                    >
+                        {columnMeta.label}
+                    </th>
+                ),
+                customBodyRender: (value) => {
+                    console.log("Valor de fechaEntrega en el render:", value); // Para verificar qué valor se recibe
+                    const displayValue = value || "Fecha pendiente"; // Si value es null o undefined, mostrar "Fecha pendiente"
+                    return <div className="text-center">{displayValue}</div>;
+                },
+            },
         },
-    },
-}
-
     ];
 
     return (

@@ -52,6 +52,13 @@ const Navbar = ({ sidebarToggle, setSidebarToggle }) => {
   const handleNewNotifications = (nuevas) => {
     setUnreadNotifications(nuevas); // Actualizamos el número de notificaciones no leídas
   };
+  
+  <ModalNotificaciones
+  isOpen={isNotificacionesOpen}
+  onClose={handleCloseModals}
+  onNewNotifications={handleNewNotifications} // Llama a esta función para actualizar las notificaciones no leídas
+/>
+
 
   return (
     <nav
@@ -98,6 +105,8 @@ const Navbar = ({ sidebarToggle, setSidebarToggle }) => {
               </span>
             )}
           </div>
+
+
           <div>
             <button
               className="text-white group"

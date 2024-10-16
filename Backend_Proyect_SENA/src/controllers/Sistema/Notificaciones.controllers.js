@@ -19,11 +19,11 @@ export const getAllNotifications = async (req, res) => {
     try {
       // Obtener todas las notificaciones incluyendo el nombre del usuario
       const notificaciones = await Notificacion.findAll({
-        order: [['createdAt', 'DESC']], // Ordena por createdAt en orden descendente
+        order: [['createdAt', 'DESC']], 
         include: [
           {
             model: Usuario,
-            attributes: ['nombre'], // Incluir solo el nombre del usuario
+            attributes: ['id','nombre'], 
           },
         ],
       });

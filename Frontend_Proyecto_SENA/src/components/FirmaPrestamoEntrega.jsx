@@ -21,10 +21,7 @@ const FirmaPrestamosEntrega = ({ accordionStates, onFirmaChange }) => {
         onFirmaChange(false, null); 
       }
     };
-    const handleFirmaChange = (isUploading, file) => {
-      // Lógica para manejar el cambio de la firma
-      console.log("Firma subida:", isUploading, file);
-    };
+
     useEffect(() => {
       const fetchData = async () => {
         if (prestamoId) {
@@ -56,7 +53,7 @@ const FirmaPrestamosEntrega = ({ accordionStates, onFirmaChange }) => {
             <div className="flex flex-col">
               <div>
                 <label className="mb-2 font-bold text-xs">
-                  Firma de quien aprueba el pedido:*
+                  Firma de quien aprueba el Prestamo:*
                 </label>
               </div>
               {firmaExistente ? (

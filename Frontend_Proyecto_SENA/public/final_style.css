@@ -662,6 +662,10 @@ td{
   left: 3.5rem;
 }
 
+.right-0{
+  right: 0px;
+}
+
 .right-2{
   right: 0.5rem;
 }
@@ -1337,6 +1341,11 @@ td{
   background-color: rgb(239 68 68 / var(--tw-bg-opacity));
 }
 
+.bg-red-600{
+  --tw-bg-opacity: 1;
+  background-color: rgb(220 38 38 / var(--tw-bg-opacity));
+}
+
 .bg-sena{
   --tw-bg-opacity: 1;
   background-color: rgb(1 175 8 / var(--tw-bg-opacity));
@@ -1531,6 +1540,10 @@ td{
   text-transform: uppercase;
 }
 
+.leading-none{
+  line-height: 1;
+}
+
 .tracking-wider{
   letter-spacing: 0.05em;
 }
@@ -1613,6 +1626,11 @@ td{
 .text-purple-500{
   --tw-text-opacity: 1;
   color: rgb(168 85 247 / var(--tw-text-opacity));
+}
+
+.text-red-100{
+  --tw-text-opacity: 1;
+  color: rgb(254 226 226 / var(--tw-text-opacity));
 }
 
 .text-red-400{
