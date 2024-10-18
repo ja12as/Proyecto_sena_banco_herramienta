@@ -449,6 +449,7 @@ const GestionarPrestamos = () => {
                                 prestamoId={prestamoId}
                                 accordionStates={accordionStates}
                                 toggleAccordion={toggleAccordion}
+                                
                                 />
                             </div>
                             </div>

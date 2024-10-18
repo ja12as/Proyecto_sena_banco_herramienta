@@ -16,6 +16,7 @@ export const crearUsuario = async (req, res) => {
   try {
     const { nombre, correo, Documento, password, permisos, RolId, EstadoId } = req.body;
     const UsuarioId = req.usuario.id;
+    const usuarioNombre = req.usuario.nombre; 
 
     const consultaId = await Usuario.findByPk(req.body.id);
     if (consultaId) {
@@ -57,8 +58,8 @@ export const crearUsuario = async (req, res) => {
 
     await crearUser.save();
 
-    const mensajeNotificacion = `El usuario ${UsuarioId.nombre} agregó un nuevo usuario (${crearUser.nombre}, documento: ${crearUser.Documento}) el ${new Date().toLocaleDateString()}.`;
-    await createNotification(req.usuario.id, 'CREATE', mensajeNotificacion);
+    const mensajeNotificacion = `El usuario ${usuarioNombre} agregó un nuevo usuario (${crearUser.nombre}, documento: ${crearUser.Documento}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
 
 
     if (permisos && permisos.length > 0) {
@@ -150,6 +151,8 @@ export const getUsuario = async (req, res) => {
 export const Putusuario = async (req, res) => {
   try {
     const { permisos } = req.body;
+    const UsuarioId = req.usuario.id;
+    const usuarioNombre = req.usuario.nombre; 
 
     const consultarusuario = await Usuario.findByPk(req.params.id);
     if (!consultarusuario) {
@@ -210,8 +213,8 @@ export const Putusuario = async (req, res) => {
     }
 
     await consultarusuario.update(req.body);
-    const mensajeNotificacion = `El usuario ${req.usuario.nombre} edito el usuario (${consultarusuario.nombre}, documento: ${consultarusuario.Documento}) el ${new Date().toLocaleDateString()}.`;
-    await createNotification(req.usuario.id, 'UPDATE', mensajeNotificacion);
+    const mensajeNotificacion = `El usuario ${usuarioNombre} edito el usuario (${consultarusuario.nombre}, documento: ${consultarusuario.Documento}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'UPDATE', mensajeNotificacion);
 
     if (permisos && permisos.length > 0) {
       const permisosAsignados = await DetallePermiso.findAll({

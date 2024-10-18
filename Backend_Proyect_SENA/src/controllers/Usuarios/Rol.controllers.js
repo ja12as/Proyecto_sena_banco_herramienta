@@ -1,7 +1,10 @@
+import { createNotification } from "../../helpers/Notificacion.helpers.js";
 import Rol from "../../models/Rol.js";
 
 export const crearRol = async (req, res) => {
   try {
+    const UsuarioId = req.usuario.id;
+    const usuarioNombre = req.usuario.nombre; 
     const rolNameLowerCase = req.body.rolName.toLowerCase();
     const rolNameUpperCase = req.body.rolName.toUpperCase();
 
@@ -18,6 +21,9 @@ export const crearRol = async (req, res) => {
       ...req.body,
       rolName: rolNameUpperCase,
     });
+    const mensajeNotificacion = `El usuario ${usuarioNombre} agregó un nuevo Rol (${crearRol.rolName}), el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+
     res.status(201).json(crearRol);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -52,6 +58,8 @@ export const getRol = async (req, res) => {
 
 export const putRoles = async (req, res) => {
   try {
+    const UsuarioId = req.usuario.id;
+    const usuarioNombre = req.usuario.nombre; 
     const RolActualizado = await Rol.findByPk(req.params.id);
 
     if (!RolActualizado) {
@@ -64,6 +72,9 @@ export const putRoles = async (req, res) => {
     }
 
     await RolActualizado.update(req.body);
+
+    const mensajeNotificacion = `El usuario ${usuarioNombre} edito el rol (${RolActualizado.rolName}), el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'UPDATE', mensajeNotificacion);
 
     res.status(200).json({
       message: "Rol actualizado correctamente",

@@ -10,7 +10,7 @@ El objetivo principal es registrar y organizar los préstamos y pedidos de maner
 El sistema de inventario está compuesto por dos partes principales que trabajan de manera conjunta para brindar una solución completa:
 
 - **Backend_Proyect_SENA:** 🔧 Contiene la lógica, las APIs y la conexión a la base de datos. Implementado en Node.js con Express.
-- **Frontend_Proyecto_SENA-laura:** 💻 Interfaz de usuario desarrollada en tecnologías web, incluyendo Tailwind CSS, para facilitar la gestión de las herramientas y el flujo de préstamos.
+- **Frontend_Proyecto_SENA:** 💻 Interfaz de usuario desarrollada en tecnologías web, incluyendo Tailwind CSS, para facilitar la gestión de las herramientas y el flujo de préstamos.
 - **node_modules/:** 📦 Directorio que almacena todas las dependencias necesarias para ejecutar el proyecto. Se genera automáticamente con el comando `npm install`.
 
 Ambos componentes se integran para proporcionar una experiencia unificada, donde el backend se encarga del manejo de la información y el frontend permite la interacción con el sistema.
@@ -71,6 +71,6 @@ Cada proyecto puede utilizar tecnologías adicionales. Consulta cada carpeta par
    Para comenzar, clona el repositorio en tu máquina local con el siguiente comando:
 
    ```bash
-   git clone https://github.com/valsolano11/Repository_General.git
+   git clone https://github.com/ja12as/Proyecto_sena_banco_herramienta
 
 

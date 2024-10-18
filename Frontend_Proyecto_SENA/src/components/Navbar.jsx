@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaBars, FaSearch, FaBell, FaUserCircle } from "react-icons/fa";
 import ModalCsesion from "./ModalCsesion";
 import ModalPerfil from "./ModalPerfil";
@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { api } from "../api/token";
 
-const Navbar = ({ sidebarToggle, setSidebarToggle }) => {
+const Navbar  = ({ sidebarToggle, setSidebarToggle }) => {
   const { signout } = useAuth();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,8 +17,28 @@ const Navbar = ({ sidebarToggle, setSidebarToggle }) => {
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
   const [isNotificacionesOpen, setIsNotificacionesOpen] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [notifications, setNotifications] = useState([]); 
+  const [notificacionesNuevas, setNotificacionesNuevas] = useState(0);
 
-  const notifications = ["Notificación 1", "Notificación 2", "Notificación 3"];
+  const fetchNotifications = async () => {
+    try {
+      const response = await api.get("/notificaciones");
+      setNotifications(response.data);
+      // Contar notificaciones no leídas
+      const unreadCount = response.data.filter(notif => notif.nueva).length;
+      setUnreadNotifications(unreadCount);
+    } catch (error) {
+      console.error("Error al obtener notificaciones:", error);
+    }
+  };
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 2500); // Cada 5 segundos
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = () => {
     setShowConfirmLogout(true);
@@ -38,6 +58,7 @@ const Navbar = ({ sidebarToggle, setSidebarToggle }) => {
     }
   };
 
+
   const handleOpenModalPerfil = () => {
     setIsModalPerfilOpen(true);
     setIsModalOpen(false);
@@ -49,16 +70,17 @@ const Navbar = ({ sidebarToggle, setSidebarToggle }) => {
     setShowConfirmLogout(false);
     setIsNotificacionesOpen(false);
   };
-  const handleNewNotifications = (nuevas) => {
-    setUnreadNotifications(nuevas); // Actualizamos el número de notificaciones no leídas
-  };
-  
-  <ModalNotificaciones
-  isOpen={isNotificacionesOpen}
-  onClose={handleCloseModals}
-  onNewNotifications={handleNewNotifications} // Llama a esta función para actualizar las notificaciones no leídas
-/>
 
+
+  const handleNewNotifications = (count) => {
+    setUnreadNotifications(prev => prev + count); // Incrementar el conteo
+    setNotificacionesNuevas(count); // Guardar el nuevo conteo
+  };
+
+  const handleOpenNotifications = async () => {
+    setIsNotificacionesOpen(true);
+    await fetchNotifications(); // Obtener notificaciones al abrir
+  };
 
   return (
     <nav
@@ -80,27 +102,19 @@ const Navbar = ({ sidebarToggle, setSidebarToggle }) => {
           Mobiliario
         </span>
       </div>
+
+
       <div className="flex justify-end w-full max-w-full">
         <div className="flex items-center gap-x-5">
-          {/* <div className="relative items-center md:w-65">
-            <span className="relative md:absolute inside-y-0 left-0 flex items-center pl-40">
-              <button className="p-2 focus:outline-none text-white md:text-black">
-                <FaSearch />
-              </button>
-            </span>
-            <input
-              type="text"
-              placeholder="Buscar aquí"
-              className="w-full px-4 py-1 pl-22 rounded-lg shadow outline-none hidden md:block bg-gray-100"
-            />
-          </div> */}
+
+
           <div className="relative text-white">
             <FaBell
               className="w-6 h-6 text-black cursor-pointer"
-              onClick={() => setIsNotificacionesOpen(true)}
+              onClick={handleOpenNotifications}
             />
             {unreadNotifications > 0 && (
-              <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+              <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
                 {unreadNotifications}
               </span>
             )}
@@ -115,8 +129,10 @@ const Navbar = ({ sidebarToggle, setSidebarToggle }) => {
               <FaUserCircle className="text-black w-6 h-6 mt-1" />
             </button>
           </div>
+
         </div>
       </div>
+
       <ModalCsesion isOpen={isModalOpen} onClose={handleCloseModals}>
         <ul className="font-inter text-sm text-black font-bold">
           <li>
@@ -129,16 +145,8 @@ const Navbar = ({ sidebarToggle, setSidebarToggle }) => {
               </span>
             </div>
           </li>
-          {/* <li>
-            <div className="bg-gray-100 text-center rounded-lg my-4">
-              <a href="">Ayuda</a>
-            </div>
-          </li>
-          <li>
-            <div className="bg-gray-100 text-center rounded-lg my-4">
-              <a href="">Configuración</a>
-            </div>
-          </li> */}
+
+
           <li>
             <div className="bg-gray-100 text-center rounded-lg my-4">
               <span
@@ -167,4 +175,4 @@ const Navbar = ({ sidebarToggle, setSidebarToggle }) => {
   );
 };
 
-export default Navbar;
+export default Navbar ;

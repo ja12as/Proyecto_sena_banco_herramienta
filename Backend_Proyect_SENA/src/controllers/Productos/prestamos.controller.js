@@ -118,7 +118,6 @@ export const getAllPrestamos = async (req, res) => {
 
 
 // Obtener un préstamo específico
-// Obtener un préstamo específico
 export const getPrestamo = async (req, res) => {
   const { id } = req.params;
 
@@ -204,34 +203,93 @@ export const actualizarPrestamo = async (req, res) => {
 
 
 const enviarCorreoNotificacion = async (prestamo) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "inventariodelmobiliario@gmail.com",
-      pass: "xieo yngh kruv rsta", // Asegúrate de mantener la seguridad de esta contraseña
-    },
-  });
+  try {
+    // Obtener las herramientas asociadas al préstamo
+    const prestamosHerramientas = await Prestamo.findByPk(prestamo.id, {
+      include: [
+        {
+          model: Herramienta,
+          through: {
+            attributes: ['observaciones'],
+          },
+        },
+      ],
+    });
 
-  const mailOptions = {
-    from: 'inventariodelmobiliario@gmail.com',
-    to: prestamo.correo, 
-    subject: 'Notificación de entrega de herramientas',
-    html: `
+    // Verificar si se encontraron herramientas
+    if (!prestamosHerramientas || !prestamosHerramientas.Herramienta || prestamosHerramientas.Herramienta.length === 0) {
+      console.log('No se encontraron herramientas asociadas al préstamo.');
+      return;
+    }
+
+    // Construcción de la tabla de herramientas en HTML
+    let tablaHerramienta = `
+    <table border="1" cellpadding="5" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Herramienta</th>
+          <th>Código</th>
+          <th>Fecha Entrega</th>
+          <th>Observaciones</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+    prestamosHerramientas.Herramienta.forEach((herramienta) => {
+      const { nombre, codigo } = herramienta;
+      const { observaciones } = herramienta.PrestamoHerramienta;
+
+      tablaHerramienta += `
+        <tr>
+          <td>${nombre}</td>
+          <td>${codigo}</td>
+          <td>${prestamo.fechaEntrega ? prestamo.fechaEntrega.toLocaleDateString() : 'Sin fecha'}</td>
+          <td>${observaciones || 'N/A'}</td>
+        </tr>`;
+    });
+
+    tablaHerramienta += `
+      </tbody>
+    </table>`;
+
+    // Configuración del transporte de nodemailer
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: "inventariodelmobiliario@gmail.com",
+        pass: "xieo yngh kruv rsta",
+      },
+      debug: true, // Activar depuración
+      logger: true, // Activar logs detallados
+    });
+
+    // Opciones de envío del correo
+    const mailOptions = {
+      from: 'inventariodelmobiliario@gmail.com',
+      to: prestamo.correo,
+      subject: 'Notificación de entrega de herramientas',
+      html: `
       <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
         <h2 style="color: #007BFF;">¡Hola ${prestamo.servidorAsignado}!</h2>
         <p>
-          Nos complace informarte que tu préstamo de herramientas ha sido entregado exitosamente.
+          Nos complace informarte que tu préstamo del día <strong>${prestamo.fechaPrestamos.toLocaleDateString()}</strong> para la ficha 
+          <strong>${prestamo.codigoFicha}</strong> ya está listo para ser recogido.
         </p>
-        <p style="font-weight: bold; color: #28A745;">
-          ¡Gracias por tu confianza!
-        </p>
+        <p>Puedes pasar por el banco de herramientas en horario de atención.</p>
+        <p style="font-weight: bold; color: #28A745;">¡Gracias por tu confianza!</p>
       </div>
-    `,
-  };
+      <p>A continuación se muestran los detalles de las herramientas:</p>
+      ${tablaHerramienta}`,
+    };
 
-  // Enviar el correo
-  await transporter.sendMail(mailOptions);
+    // Enviar el correo
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Correo enviado: %s', info.messageId);
+  } catch (error) {
+    console.error('Error al enviar el correo de notificación:', error);
+  }
 };
+
 
 export const entregarHerramientas = async (req, res) => {
   const { id } = req.params;

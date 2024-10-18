@@ -16,11 +16,16 @@ const FirmaPrestamosEntrega = ({ accordionStates, onFirmaChange }) => {
       const file = event.target.files[0];
       if (file) {
         setFirmaImagen(URL.createObjectURL(file)); 
-        onFirmaChange(true, file); 
+        if (onFirmaChange) { // Verifica si la función existe
+          onFirmaChange(true, file);
+        }
       } else {
-        onFirmaChange(false, null); 
+        if (onFirmaChange) { // Verifica si la función existe
+          onFirmaChange(false, null);
+        }
       }
     };
+    
 
     useEffect(() => {
       const fetchData = async () => {

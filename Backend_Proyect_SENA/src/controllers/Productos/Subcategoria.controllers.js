@@ -2,10 +2,13 @@ import Subcategoria from "../../models/Subcategoria.js";
 import Categoria from "../../models/Categoria.js";
 import Estado from "../../models/Estado.js";
 import { Op } from "sequelize";
+import { createNotification } from "../../helpers/Notificacion.helpers.js";
 
 export const crearSubcategoria = async (req, res) => {
   try {
     const { CategoriaId, EstadoId } = req.body;
+    const UsuarioId = req.usuario.id;
+    const usuarioNombre = req.usuario.nombre; 
 
     const consultaId = await Subcategoria.findByPk(req.body.id);
     if (consultaId) {
@@ -35,9 +38,15 @@ export const crearSubcategoria = async (req, res) => {
         .json({ message: "El estado especificado no existe" });
     }
 
+    const categoriaNombre = consultacategoria.categoriaName;
+
     let data = req.body;
     const crearSubcategorias = await Subcategoria.create(data);
     const response = await crearSubcategorias.save();
+
+    const mensajeNotificacion = `El usuario ${usuarioNombre} agregó una nueva subcategoria  (${response.subcategoriaName}, de la categoria: ${categoriaNombre}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+
 
     res.status(201).json(response);
   } catch (error) {
@@ -114,6 +123,8 @@ export const getallSubcategoriaACTIVO = async (req, res) => {
 export const putSubcategoria = async (req, res) => {
   try {
     const { CategoriaId, subcategoriaName, EstadoId } = req.body;
+    const UsuarioId = req.usuario.id;
+    const usuarioNombre = req.usuario.nombre; 
     const subcategId = req.params.id;
 
     const consultaId = await Subcategoria.findByPk(subcategId);
@@ -160,6 +171,9 @@ export const putSubcategoria = async (req, res) => {
     }
 
     await consultaId.save();
+    const mensajeNotificacion = `El usuario ${usuarioNombre} edito la  subcategoria  (${consultaId.consultaNombre}, de la categoria: ${consultaId.CategoriaId}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+
 
     res.status(200).json({
       message: "Subcategoría actualizada con éxito",

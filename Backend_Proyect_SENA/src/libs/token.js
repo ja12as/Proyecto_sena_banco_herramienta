@@ -44,6 +44,7 @@ export const verificarToken = (token) => {
             id: usuario.id,
             Documento: usuario.Documento,
             RolId: usuario.RolId,
+            nombre: usuario.nombre,
           },
         });
       });

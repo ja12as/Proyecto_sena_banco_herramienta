@@ -19,6 +19,10 @@ const Notificacion = conexion.define(
             type: DataTypes.STRING,
             allowNull: false,
         },
+        nueva: { // Campo para indicar si es nueva
+            type: DataTypes.BOOLEAN,
+            defaultValue: true, // Por defecto, las notificaciones son nuevas
+        },
         createdAt: {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW,
