@@ -2,11 +2,13 @@ import { Op } from "sequelize";
 import Estado from "../../models/Estado.js";
 import Ficha from "../../models/Fichas.js";
 import Usuario from "../../models/Usuario.js";
+import { createNotification } from "../../helpers/Notificacion.helpers.js";
 
 export const crearFicha = async (req, res) => {
   try {
     const { EstadoId, NumeroFicha, Programa, Jornada } = req.body;
     const UsuarioId = req.usuario.id;
+    const usuarioNombre = req.usuario.nombre; 
 
     const consultaId = await Ficha.findOne({
       where: { NumeroFicha },
@@ -30,6 +32,9 @@ export const crearFicha = async (req, res) => {
     const nuevaFicha = { NumeroFicha, Programa, Jornada, EstadoId, UsuarioId: UsuarioId, };
 
     const fichaCreada = await Ficha.create(nuevaFicha);
+    const mensajeNotificacion = `El usuario ${usuarioNombre} agregó una nueva ficha (${fichaCreada.NumeroFicha}, del programa: ${fichaCreada.Programa}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+
 
     res.status(200).json(fichaCreada);
   } catch (error) {
@@ -79,6 +84,7 @@ export const updateFicha = async (req, res) => {
     const { id } = req.params;
     const { EstadoId, NumeroFicha, Programa, Jornada } = req.body;
     const UsuarioId = req.usuario.id;
+    const usuarioNombre = req.usuario.nombre; 
 
     const ficha = await Ficha.findByPk(id);
     if (!ficha) {
@@ -119,6 +125,8 @@ export const updateFicha = async (req, res) => {
     }
 
     await ficha.save();
+    const mensajeNotificacion = `El usuario ${usuarioNombre} edito la ficha (${ficha.NumeroFicha}, del programa: ${ficha.Programa}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'UPDATE', mensajeNotificacion);
 
     res.status(200).json(ficha);
   } catch (error) {

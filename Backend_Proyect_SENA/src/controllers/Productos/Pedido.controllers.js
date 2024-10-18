@@ -8,6 +8,7 @@ import Estado from "../../models/Estado.js";
 import Pedido from "../../models/Pedido.js";
 import PedidoProducto from "../../models/PedidoProducto.js";
 import cronJob from "node-cron";
+import { createNotification } from "../../helpers/Notificacion.helpers.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -105,6 +106,9 @@ export const crearPedido = async (req, res) => {
     return res.status(500).json({ message: "Error al crear el pedido." });
   }
 };
+
+
+
 export const getAllPedidos = async (req, res) => {
   try {
     const pedidos = await Pedido.findAll({
@@ -164,6 +168,8 @@ export const getPedido = async (req, res) => {
   }
 };
 
+
+
 export const actualizarPedido = async (req, res) => {
   const { id } = req.params;
   const { filename } = req.file || {}; // Manejo seguro de filename
@@ -172,6 +178,9 @@ export const actualizarPedido = async (req, res) => {
   console.log("Archivo subido:", req.file); // Verificar si el archivo se está recibiendo
 
   try {
+    const UsuarioId = req.usuario.id;
+    const usuarioNombre = req.usuario.nombre; 
+
     const pedido = await Pedido.findByPk(id);
     if (!pedido) {
       return res
@@ -201,6 +210,10 @@ export const actualizarPedido = async (req, res) => {
 
     // Guardar los cambios
     await pedido.save();
+
+    const mensajeNotificacion = `El Coordinador ${usuarioNombre} firmo el pedido del servicor (${pedido.servidorAsignado}, para la ficha: ${pedido.codigoFicha}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+
 
     return res
       .status(200)

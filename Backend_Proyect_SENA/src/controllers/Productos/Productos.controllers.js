@@ -4,6 +4,7 @@ import Usuario from "../../models/Usuario.js";
 import Subcategoria from "../../models/Subcategoria.js";
 import Estado from "../../models/Estado.js";
 import UnidadDeMedida from "../../models/UnidadMedida.js";
+import { createNotification } from "../../helpers/Notificacion.helpers.js";
 
 export const crearProductos = async (req, res) => {
     try {
@@ -19,6 +20,7 @@ export const crearProductos = async (req, res) => {
         } = req.body;
 
         const UsuarioId = req.usuario.id;
+        const usuarioNombre = req.usuario.nombre; 
 
         const consultaCodigo = await Producto.findOne({
             where: { [Op.or]: [{ codigo }] },
@@ -80,7 +82,9 @@ export const crearProductos = async (req, res) => {
             SubcategoriaId,
             EstadoId: estadoIdActual || EstadoId, 
         });
-
+        const mensajeNotificacion = `El usuario ${usuarioNombre} agregó un nuevo producto (${producto.nombre}, con el codigo: ${producto.codigo}) el ${new Date().toLocaleDateString()}.`;
+        await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+    
         res.status(201).json({
             ...producto.toJSON(),
             unidadDeMedida: consultaUnidad.nombre,
@@ -128,6 +132,7 @@ export const putProductos = async (req, res) => {
         const { id } = req.params;
         const { nombre, descripcion, cantidadEntrada, volumen, marca, UnidadMedidaId, SubcategoriaId, EstadoId } = req.body;
         const UsuarioId = req.usuario.id;
+        const usuarioNombre = req.usuario.nombre; 
 
         const producto = await Producto.findByPk(id);
 
@@ -205,6 +210,9 @@ export const putProductos = async (req, res) => {
         producto.UsuarioId = UsuarioId;
 
         await producto.save(); // Guardar los cambios en el producto
+        const mensajeNotificacion = `El usuario ${usuarioNombre} edito el  producto (${producto.nombre}, con el codigo: ${producto.codigo}) el ${new Date().toLocaleDateString()}.`;
+        await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+    
 
         // Verificar si hay otros productos con cantidad actual < 2 y actualizar su estado a AGOTADO
         const productosAgotados = await Producto.findAll({

@@ -172,7 +172,7 @@ export const putSubcategoria = async (req, res) => {
 
     await consultaId.save();
     const mensajeNotificacion = `El usuario ${usuarioNombre} edito la  subcategoria  (${consultaId.consultaNombre}, de la categoria: ${consultaId.CategoriaId}) el ${new Date().toLocaleDateString()}.`;
-    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+    await createNotification(UsuarioId, 'UPDATE', mensajeNotificacion);
 
 
     res.status(200).json({

@@ -12,6 +12,9 @@ export const actualizarSalidaProducto = async (req, res) => {
   console.log("Datos recibidos para actualizar salida:", req.body);
 
   try {
+    const UsuarioId = req.usuario.id;
+    const usuarioNombre = req.usuario.nombre; 
+
     const pedido = await Pedido.findByPk(id, {
       include: [{ model: Producto, through: { attributes: ['cantidadSalida', 'cantidadSolicitar'] } }],
     });
@@ -65,6 +68,18 @@ export const actualizarSalidaProducto = async (req, res) => {
       }
 
       await productoData.save();
+      const mensajeNotificacion = `El Usuario ${usuarioNombre} entrego el pedido del servicor (${pedido.servidorAsignado}, para la ficha: ${pedido.codigoFicha}) el ${new Date().toLocaleDateString()}.`;
+      await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+
+        const estadoEntregado = await Estado.findByPk(7);
+        if (!estadoEntregado) {
+          return res.status(400).json({ message: "El estado de 'Entregado' no existe." });
+        }
+
+        pedido.EstadoId = estadoEntregado.id;
+        await pedido.save();
+
+  
     }
 
     try {

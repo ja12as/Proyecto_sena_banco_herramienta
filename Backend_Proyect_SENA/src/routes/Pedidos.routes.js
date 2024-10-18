@@ -13,7 +13,7 @@ const PedidoRouter = express.Router();
 
 PedidoRouter.get('/pedido', rutaProtegida, getAllPedidos);
 PedidoRouter.get("/pedido/:id", rutaProtegida, getPedido);
-PedidoRouter.post("/pedido",  rutaProtegida, crearPedido);
+PedidoRouter.post("/pedido", crearPedido);
 PedidoRouter.put("/pedido/:id", rutaProtegida, upload.single("firma"), actualizarPedido);
 PedidoRouter.put("/pedido/:id/salida", rutaProtegida, actualizarSalidaProducto);
 

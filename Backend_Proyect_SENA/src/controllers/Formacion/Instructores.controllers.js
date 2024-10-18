@@ -2,11 +2,13 @@ import Estado from "../../models/Estado.js";
 import Usuario from "../../models/Usuario.js";
 import { Op } from "sequelize";
 import Instructores from "../../models/Instructores.js";
+import { createNotification } from "../../helpers/Notificacion.helpers.js";
 
 export const crearInstructor = async (req, res) => {
   try {
     const { nombre, correo, celular, EstadoId } = req.body;
     const UsuarioId = req.usuario.id;
+    const usuarioNombre = req.usuario.nombre; 
 
     const consultaCorreo = await Instructores.findOne({ where: { correo } });
     if (consultaCorreo) {
@@ -33,6 +35,10 @@ export const crearInstructor = async (req, res) => {
     const nuevoInstructor = { nombre, correo, celular, EstadoId, UsuarioId};
 
     const instructorCreado = await Instructores.create(nuevoInstructor);
+    const mensajeNotificacion = `El usuario ${usuarioNombre} agregó un nuevo instructor (${instructorCreado.nombre}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+
+
 
     res.status(201).json(instructorCreado);
   } catch (error) {
@@ -81,6 +87,7 @@ export const actualizarInstructor = async (req, res) => {
     const { id } = req.params;
     const { nombre, correo, celular, EstadoId } = req.body;
     const UsuarioId = req.usuario.id;
+    const usuarioNombre = req.usuario.nombre; 
 
     const instructor = await Instructores.findByPk(id);
 
@@ -125,6 +132,8 @@ export const actualizarInstructor = async (req, res) => {
     instructor.UsuarioId = UsuarioId;
 
     await instructor.save();
+    const mensajeNotificacion = `El usuario ${usuarioNombre} edito el instructor (${instructor.nombre}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'UPDATE', mensajeNotificacion);
 
     res.status(200).json(instructor);
   } catch (error) {

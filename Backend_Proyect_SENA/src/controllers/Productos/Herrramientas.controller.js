@@ -3,11 +3,14 @@ import Herramienta from "../../models/Herramientas.js";
 import Usuario from "../../models/Usuario.js";
 import Subcategoria from "../../models/Subcategoria.js";
 import Estado from "../../models/Estado.js";
+import { createNotification } from "../../helpers/Notificacion.helpers.js";
 
 export const crearHerramienta = async (req, res) => {
     try {
         const { nombre, codigo, marca, condicion, observaciones, EstadoId, SubcategoriaId } = req.body;
         const UsuarioId = req.usuario.id;
+        const usuarioNombre = req.usuario.nombre; 
+
         const consultaCodigo = await Herramienta.findOne({ where: { codigo } });
         if (consultaCodigo) {
             return res.status(400).json({ error: 'El código de la herramienta ya existe' });
@@ -54,6 +57,9 @@ export const crearHerramienta = async (req, res) => {
             SubcategoriaId
         });
 
+        const mensajeNotificacion = `El usuario ${usuarioNombre} agregó una nueva herramienta: (${herramienta.nombre}, con el codigo: ${herramienta.codigo}) el ${new Date().toLocaleDateString()}.`;
+        await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+
         res.status(201).json(herramienta);
     } catch (error) {
         console.error("Error al crear la herramienta", error);
@@ -97,6 +103,7 @@ export const putHerramienta = async (req, res) => {
         const { id } = req.params;
         const { nombre, codigo, marca, condicion, observaciones, EstadoId, SubcategoriaId } = req.body;
         const UsuarioId = req.usuario.id;
+        const usuarioNombre = req.usuario.nombre; 
 
         const herramienta = await Herramienta.findByPk(id);
         if (!herramienta) {
@@ -153,6 +160,9 @@ export const putHerramienta = async (req, res) => {
         herramienta.UsuarioId = UsuarioId;
 
         await herramienta.save();
+        const mensajeNotificacion = `El usuario ${usuarioNombre} edito la herramienta: (${herramienta.nombre}, con el codigo: ${herramienta.codigo}) el ${new Date().toLocaleDateString()}.`;
+        await createNotification(UsuarioId, 'UPDATE', mensajeNotificacion);
+
 
         res.status(200).json(herramienta);
     } catch (error) {
@@ -172,14 +182,13 @@ export const buscarHerramientas = async (req, res) => {
 
         const herramientas = await Herramienta.findAll({
             where: {
-              nombre: {
-                [Op.like]:`%${query}%`,
-              },
+                nombre: {
+                    [Op.like]:`%${query}%`,
+                },
               EstadoId: 1, // Solo se debe buscar herramientas con EstadoId 1
             },
             attributes: ["id", "nombre", "codigo"],
-          });
-          
+        });
 
         if (herramientas.length === 0) {
             return res.status(404).json({ message: "No se encontraron herramientas." });

@@ -2,6 +2,7 @@ import Instructores from "../../models/Instructores.js";
 import Fichas from "../../models/Fichas.js";
 import InstructorFicha from "../../models/FI_IN.js";
 import Usuario from "../../models/Usuario.js";
+import { createNotification } from "../../helpers/Notificacion.helpers.js";
 
 export const obtenerRelaciones = async (req, res) => {
   try {
@@ -50,6 +51,7 @@ export const asignarInstructorAFichas = async (req, res) => {
     } = req.body;
 
     const UsuarioId = req.usuario.id;
+    const usuarioNombre = req.usuario.nombre;
     let instructor = await Instructores.findOne({
       where: { correo: correoInstructor },
     });
@@ -87,8 +89,10 @@ export const asignarInstructorAFichas = async (req, res) => {
         },
       });
     }
+    const mensajeNotificacion = `El usuario ${usuarioNombre} agregó una nueva Realacion del trimestre (${InstructorFicha.semestre}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
 
-    res.status(200).json({ message: "Instructor y fichas relacionados correctamente" });
+    res.status(200).json({ message: "Instructor y fichas relacionados correctamente"});
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Ocurrió un error al relacionar instructor y fichas" });

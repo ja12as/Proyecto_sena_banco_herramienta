@@ -133,6 +133,20 @@ const GestionarPrestamos = () => {
         console.log("Productos salida actualizados:", updatedProductos);
     };
     
+    const fetchherramientasDelPedido = async () => {
+        try {
+            const response = await api.get(`/prestamos/${prestamoId}/herramientas`);
+            if (response.status === 200) {
+                console.log("Herramientas del pedido:", response.data);
+                // Si necesitas actualizar algún estado con las herramientas, puedes hacerlo aquí
+                // Por ejemplo: setHerramientas(response.data);
+            } else {
+                console.error("Error al obtener las herramientas del pedido");
+            }
+        } catch (error) {
+            console.error("Error al obtener las herramientas del pedido:", error);
+        }
+    };
 
     const handleGestionarPedido = async () => {
         try {

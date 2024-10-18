@@ -7,7 +7,7 @@ const PrestamoRouter = express.Router();
 
 PrestamoRouter.get('/prestamos', rutaProtegida, getAllPrestamos); 
 PrestamoRouter.get('/prestamos/:id', rutaProtegida, getPrestamo); 
-PrestamoRouter.post('/prestamos', rutaProtegida, crearPrestamo); 
+PrestamoRouter.post('/prestamos', crearPrestamo); 
 PrestamoRouter.put('/prestamos/:id', rutaProtegida, upload.single("firma"), actualizarPrestamo);
 PrestamoRouter.put('/prestamos/:id/entrega', rutaProtegida, entregarHerramientas);
 

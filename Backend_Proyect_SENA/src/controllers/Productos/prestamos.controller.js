@@ -9,6 +9,7 @@ import Prestamo from "../../models/Prestamos.js";
 import PrestamoHerramienta from "../../models/intermediaria.js";
 import cronJob from "node-cron";
 import nodemailer from "nodemailer";
+import { createNotification } from "../../helpers/Notificacion.helpers.js";
 
 
 
@@ -149,6 +150,8 @@ export const getPrestamo = async (req, res) => {
 
 // Actualizar un préstamo
 export const actualizarPrestamo = async (req, res) => {
+  const UsuarioId = req.usuario.id;
+  const usuarioNombre = req.usuario.nombre; 
   const { id } = req.params;
   const { filename } = req.file || {}; // Manejo seguro de filename
 
@@ -185,6 +188,8 @@ export const actualizarPrestamo = async (req, res) => {
 
     // Guardar los cambios
     await prestamo.save();
+    const mensajeNotificacion = `El Coordinador ${usuarioNombre} firmo el prestamo del servidor (${prestamo.servidorAsignado}, para la ficha: ${prestamo.codigoFicha}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
 
     return res
       .status(200)
@@ -295,6 +300,8 @@ export const entregarHerramientas = async (req, res) => {
   const { id } = req.params;
 
   try {
+    const UsuarioId = req.usuario.id;
+    const usuarioNombre = req.usuario.nombre; 
     const prestamo = await Prestamo.findOne({
       where: { id },
       include: [
@@ -344,6 +351,10 @@ export const entregarHerramientas = async (req, res) => {
         });
       }
     }
+   // Crear mensaje de notificación usando los datos correctos del préstamo
+    const mensajeNotificacion = `El Usuario ${usuarioNombre} entregó el préstamo del servidor (${prestamo.servidorAsignado}, para la ficha: ${prestamo.codigoFicha}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+
 
     // Actualizar el estado del préstamo a "ENTREGADO" (ID 7)
     prestamo.EstadoId = 7;
