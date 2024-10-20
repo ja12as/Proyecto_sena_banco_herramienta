@@ -4,13 +4,13 @@ import { crearUsuario , getAllusuario, getUsuario, Putusuario } from "../control
 import { usuarioSchemas } from "../schemas/Usuario.schemas.js";
 import { rutaProtegida} from "../middlewares/ValidarToken.js";
 import { validarPermiso } from "../middlewares/ValiadarPermisos.js";
-import { notifyAction } from "../middlewares/ValidarNotificacion.js";
+
 
 const UsuarioRouter = Router();
 
 UsuarioRouter.get("/usuarios", rutaProtegida,validarPermiso('Obtener Usuarios'), getAllusuario);
 UsuarioRouter.get("/usuarios/:id", rutaProtegida, getUsuario);
-UsuarioRouter.post("/usuarios", rutaProtegida, validarPermiso("Crear Usuario"),validarSchemas(usuarioSchemas),notifyAction('CREATE'),crearUsuario);
-UsuarioRouter.put("/usuarios/:id",rutaProtegida, validarPermiso('Modificar Usuario'), notifyAction('UPDATE'),Putusuario);
+UsuarioRouter.post("/usuarios", rutaProtegida, validarPermiso("Crear Usuario"),validarSchemas(usuarioSchemas),crearUsuario);
+UsuarioRouter.put("/usuarios/:id",rutaProtegida, validarPermiso('Modificar Usuario'),Putusuario);
 
 export default UsuarioRouter;

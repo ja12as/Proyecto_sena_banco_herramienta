@@ -24,13 +24,23 @@ const Navbar  = ({ sidebarToggle, setSidebarToggle }) => {
     try {
       const response = await api.get("/notificaciones");
       setNotifications(response.data);
-      // Contar notificaciones no leídas
-      const unreadCount = response.data.filter(notif => notif.nueva).length;
+      // Contar notificaciones no leídas (cambiar a 'leida' si corresponde)
+      const unreadCount = response.data.filter(notif => !notif.leida).length;
       setUnreadNotifications(unreadCount);
     } catch (error) {
       console.error("Error al obtener notificaciones:", error);
     }
   };
+  
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 30000); // Cada 30 segundos
+  
+    return () => clearInterval(interval);
+  }, []);
+  
   useEffect(() => {
     fetchNotifications();
     const interval = setInterval(() => {

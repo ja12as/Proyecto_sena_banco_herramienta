@@ -940,10 +940,6 @@ td{
   width: 4rem;
 }
 
-.w-2{
-  width: 0.5rem;
-}
-
 .w-2\/4{
   width: 50%;
 }
@@ -1316,6 +1312,16 @@ td{
   background-color: rgb(17 24 39 / var(--tw-bg-opacity));
 }
 
+.bg-green-200{
+  --tw-bg-opacity: 1;
+  background-color: rgb(187 247 208 / var(--tw-bg-opacity));
+}
+
+.bg-green-700{
+  --tw-bg-opacity: 1;
+  background-color: rgb(21 128 61 / var(--tw-bg-opacity));
+}
+
 .bg-grisClaro{
   --tw-bg-opacity: 1;
   background-color: rgb(217 217 217 / var(--tw-bg-opacity));
@@ -1358,16 +1364,6 @@ td{
 .bg-white{
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
-}
-
-.bg-green-200{
-  --tw-bg-opacity: 1;
-  background-color: rgb(187 247 208 / var(--tw-bg-opacity));
-}
-
-.bg-green-700{
-  --tw-bg-opacity: 1;
-  background-color: rgb(21 128 61 / var(--tw-bg-opacity));
 }
 
 .bg-opacity-50{
@@ -1459,10 +1455,6 @@ td{
 
 .pl-2{
   padding-left: 0.5rem;
-}
-
-.pl-40{
-  padding-left: 10rem;
 }
 
 .pr-10{
@@ -1713,11 +1705,6 @@ td{
   --tw-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-}
-
-.outline-none{
-  outline: 2px solid transparent;
-  outline-offset: 2px;
 }
 
 .filter{
@@ -2184,14 +2171,14 @@ td{
   background-color: rgb(55 65 81 / var(--tw-bg-opacity));
 }
 
-.hover\:bg-red-600:hover{
-  --tw-bg-opacity: 1;
-  background-color: rgb(220 38 38 / var(--tw-bg-opacity));
-}
-
 .hover\:bg-green-800:hover{
   --tw-bg-opacity: 1;
   background-color: rgb(22 101 52 / var(--tw-bg-opacity));
+}
+
+.hover\:bg-red-600:hover{
+  --tw-bg-opacity: 1;
+  background-color: rgb(220 38 38 / var(--tw-bg-opacity));
 }
 
 .hover\:text-gray-700:hover{
@@ -2235,10 +2222,6 @@ td{
 }
 
 @media (min-width: 768px){
-  .md\:absolute{
-    position: absolute;
-  }
-
   .md\:mb-6{
     margin-bottom: 1.5rem;
   }
@@ -2261,10 +2244,6 @@ td{
 
   .md\:mt-8{
     margin-top: 2rem;
-  }
-
-  .md\:block{
-    display: block;
   }
 
   .md\:inline{
@@ -2388,11 +2367,6 @@ td{
   .md\:text-xl{
     font-size: 1.25rem;
     line-height: 1.75rem;
-  }
-
-  .md\:text-black{
-    --tw-text-opacity: 1;
-    color: rgb(0 0 0 / var(--tw-text-opacity));
   }
 }
 

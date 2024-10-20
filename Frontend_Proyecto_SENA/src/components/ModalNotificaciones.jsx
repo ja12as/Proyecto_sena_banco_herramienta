@@ -10,30 +10,36 @@ const ModalNotificaciones = ({ isOpen, onClose, onNewNotifications }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Se asegura de que el fetch de notificaciones solo ocurra cuando el modal está abierto
   useEffect(() => {
     if (isOpen) {
       fetchNotificaciones();
-      const interval = setInterval(() => {
-        fetchNotificaciones(); // Repite la llamada cada 30 segundos
-      }, 30000);
-      
-      return () => clearInterval(interval); // Limpia el intervalo cuando se cierre el modal
     }
   }, [isOpen]);
 
   const fetchNotificaciones = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/notificaciones");
-      if (response.status === 200) {
-        const noLeidas = response.data.filter(n => n.nueva); // Filtrar las no leídas
-        setNotificaciones(noLeidas);
-
-        // Calcular cuántas notificaciones son nuevas
-        const nuevas = noLeidas.length;
-        onNewNotifications(nuevas); // Actualizamos el número de notificaciones nuevas
-      } else {
-        console.error("Error al cargar las notificaciones:", response.data.message);
+      const response = await api.get('/notificaciones');
+      const notificaciones = response.data;
+  
+      console.log("Notificaciones:", notificaciones);
+  
+      // Filtra y valida que cada notificación tenga la estructura esperada
+      const unreadCount = notificaciones.filter(n => 
+        n.usuarios && 
+        n.usuarios.length > 0 && 
+        n.usuarios[0]?.UsuarioNotificacion && 
+        !n.usuarios[0].UsuarioNotificacion.leida
+      ).length;
+  
+      console.log("Notificaciones no leídas:", unreadCount);
+  
+      setNotificaciones(notificaciones);
+  
+      // Llamamos la función callback para actualizar el contador de no leídas
+      if (typeof onNewNotifications === 'function') {
+        onNewNotifications(unreadCount); // Actualizar el conteo de no leídas
       }
     } catch (error) {
       console.error("Error al cargar las notificaciones:", error);
@@ -44,23 +50,31 @@ const ModalNotificaciones = ({ isOpen, onClose, onNewNotifications }) => {
 
   const handleNotificationClick = async (id, redirectionPath) => {
     try {
-      // Marcar la notificación como leída en el backend
       await api.put(`/notificaciones/${id}/leida`);
-      
-      // Actualizar estado local
+
       setNotificaciones((prev) =>
         prev.map((notificacion) =>
           notificacion.id === id
-            ? { ...notificacion, nueva: false }
+            ? {
+                ...notificacion,
+                usuarios: notificacion.usuarios.map(usuario => ({
+                  ...usuario,
+                  UsuarioNotificacion: {
+                    ...usuario.UsuarioNotificacion,
+                    leida: true
+                  }
+                }))
+              }
             : notificacion
         )
       );
 
-      // Redirigir a la página correspondiente si redirectionPath existe
       if (redirectionPath) {
         navigate(redirectionPath);
       }
-      onNewNotifications(notificaciones.filter(n => n.nueva).length - 1);
+
+      // Actualizar el contador de no leídas
+      onNewNotifications(notificaciones.filter(n => !n.usuarios[0]?.UsuarioNotificacion?.leida).length);
     } catch (error) {
       console.error("Error al marcar la notificación como leída:", error);
     }
@@ -68,19 +82,27 @@ const ModalNotificaciones = ({ isOpen, onClose, onNewNotifications }) => {
 
   const handleMarkAsUnread = async (id) => {
     try {
-      // Marcar la notificación como no leída en el backend
       await api.put(`/notificaciones/${id}/no-leida`);
 
-      // Actualizar estado local
       setNotificaciones((prev) =>
         prev.map((notificacion) =>
           notificacion.id === id
-            ? { ...notificacion, nueva: true }
+            ? {
+                ...notificacion,
+                usuarios: notificacion.usuarios.map(usuario => ({
+                  ...usuario,
+                  UsuarioNotificacion: {
+                    ...usuario.UsuarioNotificacion,
+                    leida: false
+                  }
+                }))
+              }
             : notificacion
         )
       );
 
-      onNewNotifications(notificaciones.filter(n => n.nueva).length + 1);
+      // Actualizar el contador de no leídas
+      onNewNotifications(notificaciones.filter(n => !n.usuarios[0]?.UsuarioNotificacion?.leida).length + 1);
     } catch (error) {
       console.error("Error al marcar la notificación como no leída:", error);
     }
@@ -118,7 +140,7 @@ const ModalNotificaciones = ({ isOpen, onClose, onNewNotifications }) => {
                 <div
                   key={notificacion.id}
                   className={`border-b border-gray-200 py-2 flex flex-col p-4 mb-2 rounded-lg ${
-                    notificacion.nueva ? "bg-green-200" : "bg-white"
+                    notificacion.usuarios[0]?.UsuarioNotificacion?.leida ? "bg-white" : "bg-green-200"
                   }`}
                 >
                   <div className="flex justify-between items-center">
@@ -129,7 +151,7 @@ const ModalNotificaciones = ({ isOpen, onClose, onNewNotifications }) => {
                       </p>
                     </div>
                     <div>
-                    <button
+                      <button
                         onClick={() => handleNotificationClick(notificacion.id, "/historial")}
                         className="text-white bg-green-700 hover:bg-green-800 rounded px-2 py-1 text-sm"
                       >
@@ -139,13 +161,13 @@ const ModalNotificaciones = ({ isOpen, onClose, onNewNotifications }) => {
                   </div>
                   <button
                     onClick={() =>
-                      notificacion.nueva
-                        ? handleNotificationClick(notificacion.id)
-                        : handleMarkAsUnread(notificacion.id)
+                      notificacion.usuarios[0]?.UsuarioNotificacion?.leida
+                        ? handleMarkAsUnread(notificacion.id)
+                        : handleNotificationClick(notificacion.id)
                     }
                     className="text-sm text-blue-500 mt-2"
                   >
-                    {notificacion.nueva ? "Marcar como leída" : "Marcar como no leída"}
+                    {notificacion.usuarios[0]?.UsuarioNotificacion?.leida ? "Marcar como no leída" : "Marcar como leída"}
                   </button>
                 </div>
               ))

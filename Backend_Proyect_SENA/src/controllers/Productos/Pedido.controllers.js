@@ -28,6 +28,9 @@ export const crearPedido = async (req, res) => {
   console.log("Datos recibidos para crear el pedido:", req.body);
 
   try {
+
+/*     const UsuarioId = req.usuario.id; */
+
     const estadoPendiente = await Estado.findOne({
       where: { estadoName: "PENDIENTE" },
     });
@@ -48,6 +51,9 @@ export const crearPedido = async (req, res) => {
       EstadoId: estadoPendiente.id,
       firma: null,
     });
+
+/*     const mensajeNotificacion = `El Servidor ${nuevoPrestamo.servidorAsignado} a solicitado un pedido para la ficha(${nuevoPrestamo.codigoFicha}, con el coordinador: ${nuevoPrestamo.jefeOficina}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion); */
 
     for (const producto of productos) {
       if (!producto.cantidadSolicitar || producto.cantidadSolicitar <= 0) {

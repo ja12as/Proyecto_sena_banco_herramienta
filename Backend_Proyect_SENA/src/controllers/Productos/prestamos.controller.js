@@ -32,6 +32,8 @@ export const crearPrestamo = async (req, res) => {
   console.log("Datos recibidos para crear el préstamo:", req.body);
 
   try {
+ /*    const UsuarioId = req.usuario.id; */
+
     const estadoPendiente = await Estado.findOne({ where: { estadoName: "PENDIENTE" } });
     if (!estadoPendiente) {
       return res.status(404).json({ message: "No se encontró el estado 'PENDIENTE'. Asegúrate de que esté creado en la base de datos." });
@@ -47,7 +49,9 @@ export const crearPrestamo = async (req, res) => {
       cedulaServidor,
       EstadoId: estadoPendiente.id,
     });
-
+/*  const mensajeNotificacion = `El Servidor ${nuevoPrestamo.servidorAsignado} a solicitado un prestamo para la ficha(${nuevoPrestamo.codigoFicha}, con el coordinador: ${nuevoPrestamo.jefeOficina}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+  */
     for (const herramienta of herramientas) {
       const herramientaData = await Herramienta.findByPk(herramienta.HerramientumId);
       if (!herramientaData) {
