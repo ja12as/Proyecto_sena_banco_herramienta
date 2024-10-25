@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../api/token";
 import { saveAs } from "file-saver";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import Sidebar from "../components/Sidebar";
 import Home from "../components/Home";
 import MUIDataTable from "mui-datatables";
@@ -67,7 +67,10 @@ const Roles = () => {
       label: "ID",
       options: {
         customHeadRender: (columnMeta) => (
-          <th key={columnMeta.index} className="text-center bg-white text-black uppercase text-xs font-bold">
+          <th
+            key={columnMeta.index}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
             {columnMeta.label}
           </th>
         ),
@@ -79,7 +82,10 @@ const Roles = () => {
       label: "ROL",
       options: {
         customHeadRender: (columnMeta) => (
-          <th key={columnMeta.index} className="text-center bg-white text-black uppercase text-xs font-bold">
+          <th
+            key={columnMeta.index}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
             {columnMeta.label}
           </th>
         ),
@@ -92,9 +98,12 @@ const Roles = () => {
       options: {
         filter: false,
         customHeadRender: (columnMeta) => (
-          <th key={columnMeta.index} className="text-center bg-white text-black uppercase text-xs font-bold">
-          {columnMeta.label}
-        </th>
+          <th
+            key={columnMeta.index}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
+          </th>
         ),
         customBodyRender: (value, tableMeta, updateValue) => (
           <div className="flex items-center justify-center">
@@ -131,25 +140,23 @@ const Roles = () => {
     const doc = new jsPDF();
     const tableColumn = ["Rol"];
     const tableRows = [];
-  
+
     roles.forEach((rol) => {
-      const rolData = [
-        rol.rolName || "", 
-      ];
+      const rolData = [rol.rolName || ""];
       tableRows.push(rolData);
     });
-  
+
     doc.autoTable({
       head: [tableColumn],
       body: tableRows,
-      startY: 20, 
-      theme: 'striped', 
-      styles: { fontSize: 10 }, 
-      headStyles: { fillColor: [0, 57, 107] }, 
-      margin: { top: 10 }, 
+      startY: 20,
+      theme: "striped",
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [0, 57, 107] },
+      margin: { top: 10 },
     });
-  
-    doc.text("Roles", 14, 15); 
+
+    doc.text("Roles", 14, 15);
     doc.save("Roles.pdf");
   };
 
@@ -157,7 +164,7 @@ const Roles = () => {
     return user.DetallePermisos.some(
       (permiso) => permiso.Permiso.nombrePermiso === permissionName
     );
-  };  
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -171,11 +178,10 @@ const Roles = () => {
           sidebarToggle={sidebarToggle}
           setSidebarToggle={setSidebarToggle}
         />
-        <div className="flex justify-end mt-2">
-          <button 
-            className="btn-black mr-2" 
-            onClick={handleExportPDF}
-          >
+        
+        {/* Contenedor para los botones */}
+        <div className="flex justify-end mt-6 fixed top-16 right-6 z-10">
+          <button className="btn-black mr-2" onClick={handleExportPDF}>
             Exportar PDF
           </button>
           {hasPermission("Crear Rol") && (
@@ -185,15 +191,19 @@ const Roles = () => {
             >
               Agregar Rol
             </button>
-           )}
+          )}
         </div>
-        <div className="flex-grow flex items-center justify-center">
-          <div className="max-w-4xl mx-auto">
+
+        {/* Contenedor de la tabla */}
+        <div className="flex-grow flex items-center justify-center mt-16">
+          {" "}
+          {/* Añadir mt-16 para espacio */}
+          <div className="max-w-6xl mx-auto">
             {loading ? (
               <div className="text-center">Cargando roles...</div>
             ) : (
               <MUIDataTable
-                title={<span className="custom-title">ROLES</span>} 
+                title={<span className="custom-title">ROLES</span>}
                 data={roles}
                 columns={columns}
                 options={{

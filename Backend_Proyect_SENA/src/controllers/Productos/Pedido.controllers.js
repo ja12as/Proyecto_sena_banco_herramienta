@@ -9,6 +9,7 @@ import Pedido from "../../models/Pedido.js";
 import PedidoProducto from "../../models/PedidoProducto.js";
 import cronJob from "node-cron";
 import { createNotification } from "../../helpers/Notificacion.helpers.js";
+import Historial from "../../models/Historial.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,20 +25,14 @@ export const crearPedido = async (req, res) => {
     cedulaServidor,
     productos,
   } = req.body;
-
   console.log("Datos recibidos para crear el pedido:", req.body);
 
   try {
-
-/*     const UsuarioId = req.usuario.id; */
-
     const estadoPendiente = await Estado.findOne({
       where: { estadoName: "PENDIENTE" },
     });
     if (!estadoPendiente) {
-      return res
-        .status(404)
-        .json({ message: "El estado 'PENDIENTE' no existe." });
+      return res.status(404).json({ message: "El estado 'PENDIENTE' no existe." });
     }
 
     const nuevoPedido = await Pedido.create({
@@ -52,8 +47,9 @@ export const crearPedido = async (req, res) => {
       firma: null,
     });
 
-/*     const mensajeNotificacion = `El Servidor ${nuevoPrestamo.servidorAsignado} a solicitado un pedido para la ficha(${nuevoPrestamo.codigoFicha}, con el coordinador: ${nuevoPrestamo.jefeOficina}) el ${new Date().toLocaleDateString()}.`;
-    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion); */
+    const mensajeNotificacion = `El Servidor público: ${nuevoPedido.servidorAsignado} ha solicitado un pedido para la ficha(${nuevoPedido.codigoFicha}, con el coordinador: ${nuevoPedido.jefeOficina}) el ${new Date().toLocaleDateString()}.`;
+    await createNotification(servidorAsignado, 'CREATE', mensajeNotificacion);
+
 
     for (const producto of productos) {
       if (!producto.cantidadSolicitar || producto.cantidadSolicitar <= 0) {
@@ -66,9 +62,7 @@ export const crearPedido = async (req, res) => {
       if (!productoData) {
         return res
           .status(404)
-          .json({
-            message: `Producto con id ${producto.ProductoId} no encontrado.`,
-          });
+          .json({ message: `Producto con id ${producto.ProductoId} no encontrado.` });
       }
 
       await PedidoProducto.create({
@@ -80,6 +74,8 @@ export const crearPedido = async (req, res) => {
       });
     }
 
+
+    // Configurar una tarea con cronJob para eliminar pedidos sin firma después de 3 días
     cronJob.schedule("0 0 * * *", async () => {
       const fechaLimite = new Date();
       fechaLimite.setDate(fechaLimite.getDate() - 3);
@@ -112,6 +108,7 @@ export const crearPedido = async (req, res) => {
     return res.status(500).json({ message: "Error al crear el pedido." });
   }
 };
+
 
 
 
@@ -159,6 +156,7 @@ export const getPedido = async (req, res) => {
         },
         { model: Estado },
       ],
+      
     });
 
     if (!pedido) {
@@ -214,13 +212,19 @@ export const actualizarPedido = async (req, res) => {
     // Actualizar el estado a "EN PROCESO"
     pedido.EstadoId = estadoEnProceso.id;
 
-    // Guardar los cambios
     await pedido.save();
 
-    const mensajeNotificacion = `El Coordinador ${usuarioNombre} firmo el pedido del servicor (${pedido.servidorAsignado}, para la ficha: ${pedido.codigoFicha}) el ${new Date().toLocaleDateString()}.`;
+    const mensajeNotificacion = `El Coordinador ${usuarioNombre} firmo el pedido del servicor público: (${pedido.servidorAsignado}, para la ficha: ${pedido.codigoFicha}) el ${new Date().toLocaleDateString()}.`;
     await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
 
+  
+    const descripcionHistorial = `El coordinador ${usuarioNombre} ha autorizado el pedido del servidor público ${pedido.servidorAsignado} asignado a la ficha ${pedido.codigoFicha} el ${new Date().toLocaleDateString()}.`;
 
+    await Historial.create({
+      tipoAccion: "AUTORIZAR",
+      descripcion: descripcionHistorial,
+      UsuarioId: UsuarioId, // ID del coordinador que está autorizando
+    });
     return res
       .status(200)
       .json({ message: "Pedido actualizado con éxito", pedido });

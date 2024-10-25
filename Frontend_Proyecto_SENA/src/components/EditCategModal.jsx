@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api/token";
 import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 
 const EditCategModal = ({ isOpen, onClose, categoria }) => {
@@ -151,12 +151,11 @@ const EditCategModal = ({ isOpen, onClose, categoria }) => {
     }
   };
 
-  // Función para verificar permisos
   const hasPermission = (permissionName) => {
     return user.DetallePermisos.some(
       (permiso) => permiso.Permiso.nombrePermiso === permissionName
     );
-  };  
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-fondo bg-opacity-50">
@@ -223,16 +222,16 @@ const EditCategModal = ({ isOpen, onClose, categoria }) => {
         <div className="sm:w-full md:w-full flex flex-col justify-end">
           {hasPermission("Modificar Categoria") && (
             <div className="flex justify-center mb-4 mx-2">
-                <button className="btn-danger2 mx-2" onClick={onClose}>
-                  Cancelar
-                </button>
-                <button
-                  className="btn-primary2 mx-2"
-                  onClick={handleUpdate}
-                  disabled={loading}
-                >
-                  Actualizar
-                </button>
+              <button className="btn-danger2 mx-2" onClick={onClose}>
+                Cancelar
+              </button>
+              <button
+                className="btn-primary2 mx-2"
+                onClick={handleUpdate}
+                disabled={loading}
+              >
+                Actualizar
+              </button>
             </div>
           )}
         </div>

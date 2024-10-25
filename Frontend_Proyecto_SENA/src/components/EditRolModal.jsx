@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api/token";
 import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 
 const EditRolModal = ({ isOpen, onClose, rol }) => {
@@ -112,12 +112,11 @@ const EditRolModal = ({ isOpen, onClose, rol }) => {
 
   if (!isOpen) return null;
 
-  // Función para verificar permisos
   const hasPermission = (permissionName) => {
     return user.DetallePermisos.some(
       (permiso) => permiso.Permiso.nombrePermiso === permissionName
     );
-  };  
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-fondo bg-opacity-50">

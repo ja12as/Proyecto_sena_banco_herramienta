@@ -1,18 +1,21 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaHome, FaUsers } from "react-icons/fa";
+import { FaHome, FaRegFileExcel } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { FaFileSignature } from "react-icons/fa";
 import { SiGoogleclassroom } from "react-icons/si";
 import fondo from "/logoSena.png";
 import { LiaDropbox } from "react-icons/lia";
 import { FiTool } from "react-icons/fi";
+import { useAuth } from "../context/AuthContext";
 
 const SidebarCoord = ({ sidebarToggleCoord }) => {
     const navigate = useNavigate();
     const [expanded, setExpanded] = useState({
       autorizar: false,
     });  
+
+    const { user } = useAuth();
 
     const handleClick = () => {
         navigate("/homecoord");
@@ -24,6 +27,12 @@ const SidebarCoord = ({ sidebarToggleCoord }) => {
         [panel]: !prevExpanded[panel],
       }));
     };  
+
+    const hasPermission = (permissionName) => {
+      return user.DetallePermisos.some(
+        (permiso) => permiso.Permiso.nombrePermiso === permissionName
+      );
+    };
     
   return (
     <motion.div
@@ -52,14 +61,16 @@ const SidebarCoord = ({ sidebarToggleCoord }) => {
           </a>
         </li>
 
+        {(hasPermission("Autorizar pedidos") ||
+          hasPermission("Autorizar prestamos")) && (
         <li className="mb-2">
-          <div 
+          <div
             className="flex items-center justify-between px-3 py-2 rounded hover:shadow hover:bg-gray-700 cursor-pointer"
             onClick={() => handleToggle("autorizar")}
           >
             <div className="flex items-center">
               <FaFileSignature className="inline-block w-6 h-6 mr-2 -mt-2"></FaFileSignature>
-              Autorizar Pedidos 
+              Autorizar Pedidos
             </div>
             <span>{expanded.autorizar ? "-" : "+"}</span>
           </div>
@@ -67,19 +78,20 @@ const SidebarCoord = ({ sidebarToggleCoord }) => {
             <ul className="bg-black text-center text-white text-sm">
               <li className="py-1 hover:bg-gray-700 rounded mx-4">
                 <a href="/autPedidos" className="px-3 flex items-center">
-                <LiaDropbox className="inline-block w-4 h-4 mr-2 -mt-1"></LiaDropbox>
-                Productos
+                  <LiaDropbox className="inline-block w-4 h-4 mr-2 -mt-1"></LiaDropbox>
+                  Productos
                 </a>
               </li>
               <li className="py-1 hover:bg-gray-700 rounded mx-4">
                 <a href="/autPrestamos" className="px-3 flex items-center">
-                <FiTool className="inline-block w-4 h-4 mr-2 -mt-1"></FiTool>
-                Herramientas
+                  <FiTool className="inline-block w-4 h-4 mr-2 -mt-1"></FiTool>
+                  Herramientas
                 </a>
               </li>
             </ul>
           )}
-          </li>
+        </li>
+        )}
 
         <li className="mb-2 rounded hover:shadow hover:bg-gray-700 py-2">
           <a href="/fichasCoordi" className="px-3">
@@ -87,9 +99,17 @@ const SidebarCoord = ({ sidebarToggleCoord }) => {
             Gestión Fichas
           </a>
         </li>
+
+        <li className="mb-2 rounded hover:shadow hover:bg-gray-700 py-2">
+          <a href="/excel" className="px-3">
+            <FaRegFileExcel className="inline-block w-6 h-6 mr-2 -mt-2"></FaRegFileExcel>
+            Importar Excel
+          </a>
+        </li>
+
       </ul>
     </motion.div>
   );
 };
 
-export default SidebarCoord
+export default SidebarCoord;

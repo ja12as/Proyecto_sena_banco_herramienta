@@ -27,7 +27,7 @@ const Formularios = () => {
       if (!nameRegex.test(value) || /\d/.test(value)) {
         errorMessage = "No puede contener caracteres especiales.";
       }
-    } 
+    }
     return errorMessage;
   };
 
@@ -95,31 +95,35 @@ const Formularios = () => {
               </div>
             </div>
 
-           <div className={"bg-white px-4 py-3 w-full border-2 border-black mt-2"}>
+            <div
+              className={"bg-white px-4 py-3 w-full border-2 border-black mt-2"}
+            >
               <div className="flex flex-col space-y-4 md:space-y-0 text-sm w-full">
                 <div className="w-full font-inter text-left">
                   <div className="space-y-2">
-
                     <div className="flex flex-col md:flex-row justify-between gap-x-4">
-
                       <div className="flex flex-row min-w-[200px] w-full md:w-1/3">
-                        <label className="mb-1 font-bold text-sm mt-2">Fecha de Solicitud*</label>
+                        <label className="mb-1 font-bold text-sm mt-2">
+                          Fecha de Solicitud*
+                        </label>
                         <input
                           className=" border-b border-black text-sm px-2 h-8"
                           type="date"
                           name="nombre"
-                          value={formData.nombre}  
+                          value={formData.nombre}
                           onChange={handleInputChange}
                         />
                       </div>
 
                       <div className="flex flex-row min-w-[200px] w-full md:w-1/3">
-                        <label className="mb-1 font-bold text-sm mt-2">Área*</label>
+                        <label className="mb-1 font-bold text-sm mt-2">
+                          Área*
+                        </label>
                         <input
                           className=" border-b border-black text-sm px-2 h-8"
                           type="text"
                           name="Documento"
-                          value={formData.Documento}  
+                          value={formData.Documento}
                           onChange={handleInputChange}
                           onKeyPress={(e) => {
                             if (/[0-9]/.test(e.key)) {
@@ -134,42 +138,42 @@ const Formularios = () => {
                         )}
                       </div>
                       <div className="flex flex-row min-w-[200px]  w-full md:w-2/3">
-                      <label className="mb-1 font-bold text-sm mt-2">
-                        Código de grupo o ficha de caracterización*
-                      </label>
-                      <input
-                        className=" border-b border-black text-sm px-2 h-8"
-                        type="text"
-                        name="Documento"
-                        value=""
-                        onChange={handleInputChange}
-                        onKeyPress={(e) => {
-                          if (!/[0-9]/.test(e.key)) {
-                            e.preventDefault();
-                          }
-                        }}
-                        maxLength={6}
-                      />
-                      {formErrors.Documento && (
-                        <div className="text-red-400 text-sm mt-1 px-2">
-                          {formErrors.Documento}
-                        </div>
-                      )}
-                    </div>
+                        <label className="mb-1 font-bold text-sm mt-2">
+                          Código de grupo o ficha de caracterización*
+                        </label>
+                        <input
+                          className=" border-b border-black text-sm px-2 h-8"
+                          type="text"
+                          name="Documento"
+                          value=""
+                          onChange={handleInputChange}
+                          onKeyPress={(e) => {
+                            if (!/[0-9]/.test(e.key)) {
+                              e.preventDefault();
+                            }
+                          }}
+                          maxLength={6}
+                        />
+                        {formErrors.Documento && (
+                          <div className="text-red-400 text-sm mt-1 px-2">
+                            {formErrors.Documento}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex flex-col md:flex-row justify-between gap-x-4">
                       <div className="flex flex-row">
-                          <label className="mb-1 font-bold text-sm mt-2">
-                            Código Regional
-                          </label>
-                          <input
-                            className="border-b border-black text-sm text-center text-noEdit w-10 px-2 h-8" 
-                            type="text"
-                            name="name"
-                            value="5"
-                            readOnly
-                          />
+                        <label className="mb-1 font-bold text-sm mt-2">
+                          Código Regional
+                        </label>
+                        <input
+                          className="border-b border-black text-sm text-center text-noEdit w-10 px-2 h-8"
+                          type="text"
+                          name="name"
+                          value="5"
+                          readOnly
+                        />
                       </div>
 
                       <div className="flex flex-row">
@@ -177,7 +181,7 @@ const Formularios = () => {
                           Nombre Regional
                         </label>
                         <input
-                          className=" border-b border-black text-sm text-center text-noEdit w-20 px-2 h-8" 
+                          className=" border-b border-black text-sm text-center text-noEdit w-20 px-2 h-8"
                           type="text"
                           name="name"
                           value="Antioquia"
@@ -189,12 +193,12 @@ const Formularios = () => {
                           Código Centro de Costos
                         </label>
                         <input
-                          className=" border-b border-black text-sm text-center text-noEdit w-20 px-2 h-8" 
+                          className=" border-b border-black text-sm text-center text-noEdit w-20 px-2 h-8"
                           type="text"
                           name="name"
                           value="920510"
                           readOnly
-                        />                    
+                        />
                       </div>
 
                       <div className="flex flex-row w-2/4">
@@ -202,7 +206,7 @@ const Formularios = () => {
                           Nombre Centro de Costos
                         </label>
                         <input
-                          className="border-b border-black text-sm text-center text-noEdit w-64 px-2 h-8" 
+                          className="border-b border-black text-sm text-center text-noEdit w-64 px-2 h-8"
                           type="text"
                           name="name"
                           value="Centro Tecnólogico del Mobiliario"
@@ -290,7 +294,7 @@ const Formularios = () => {
                               e.preventDefault();
                             }
                           }}
-                          maxLength={10}                          
+                          maxLength={10}
                         />
                         {formErrors.Documento && (
                           <div className="text-red-400 text-sm mt-1 px-2">
@@ -299,13 +303,10 @@ const Formularios = () => {
                         )}
                       </div>
                     </div>
-
-
-
                   </div>
                 </div>
               </div>
-            </div> 
+            </div>
 
             <div className="flex justify-end mt-2">
               <button className="btn-primary2 mb-2">Agregar Item</button>

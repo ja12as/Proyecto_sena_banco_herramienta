@@ -11,6 +11,8 @@ import * as XLSX from "xlsx";
 import clsx from "clsx";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const AutorizarPedidos = () => {
   const [sidebarToggleCoord, setsidebarToggleCoord] = useState(false);
@@ -45,7 +47,7 @@ const AutorizarPedidos = () => {
         progress: undefined,
       });
     }
-  };  
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -174,7 +176,7 @@ const AutorizarPedidos = () => {
           <div
             className={clsx("text-center", {
               "text-green-500": value === "ENTREGADO",
-              "text-orange-500": value === "EN PROCESO",
+              "text-yellow-500": value === "EN PROCESO",
               "text-red-500": value === "PENDIENTE",
             })}
           >
@@ -232,6 +234,42 @@ const AutorizarPedidos = () => {
     const data = new Blob([excelBuffer], { type: "application/octet-stream" });
     saveAs(data, "Pedidos.xlsx");
   };
+  
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const tableColumn = [
+      "Fecha",
+      "Nombre Solicitante",
+      "Ficha",
+      "Area",
+      "Estado"
+    ];
+    const tableRows = [];
+
+    data.forEach((pedido) => {
+      const pedidoData = [
+        pedido.createdAt || "",
+        pedido.servidorAsignado || "",
+        pedido.codigoFicha || "",
+        pedido.area || "",
+        pedido.estadoName || "",
+      ];
+      tableRows.push(pedidoData);
+    });
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+      theme: "striped",
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [0, 57, 107] },
+      margin: { top: 10 },
+    });
+
+    doc.text("Listado de Pedidos productos", 14, 15);
+    doc.save("Pedidos.pdf");
+  };
 
   return (
     <div className="flex min-h-screen bg-fondo">
@@ -245,16 +283,25 @@ const AutorizarPedidos = () => {
           sidebarToggle={sidebarToggleCoord}
           setSidebarToggle={setsidebarToggleCoord}
         />
-        <div className="flex-grow flex items-center justify-center">
+
+        {/* Contenedor para los botones */}
+        <div className="flex justify-end mt-6 fixed top-16 right-6 z-10">
+          <button className="btn-black mr-2" onClick={handleExportPDF}>
+            Exportar PDF
+          </button>
+        </div>
+
+        {/* Contenedor de la tabla */}
+        <div className="flex-grow flex items-center justify-center mt-16">
+          {" "}
+          {/* Añadir mt-16 para espacio */}
           <div className="max-w-6xl mx-auto">
             {loading ? (
               <div className="text-center">Cargando Pedidos...</div>
             ) : (
               <MUIDataTable
                 title={
-                  <span className="custom-title">
-                    Pedidos de Productos consumibles
-                  </span>
+                  <span className="custom-title">Pedidos de Productos</span>
                 }
                 data={data}
                 columns={columns}

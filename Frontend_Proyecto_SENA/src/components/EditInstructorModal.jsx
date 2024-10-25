@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api/token";
 import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 
 const EditinstructorModal = ({ isOpen, onClose, instructor }) => {
@@ -33,14 +33,14 @@ const EditinstructorModal = ({ isOpen, onClose, instructor }) => {
       try {
         const response = await api.get("/Estado");
         const filteredEstados = response.data.filter(
-          estado => estado.id === 1 || estado.id === 2
+          (estado) => estado.id === 1 || estado.id === 2
         );
         setEstados(filteredEstados);
       } catch (error) {
         showToastError("Error al cargar los estados");
       }
     };
-  
+
     fetchStates();
   }, []);
 
@@ -91,23 +91,35 @@ const EditinstructorModal = ({ isOpen, onClose, instructor }) => {
     }
     return errorMessage;
   };
-
+  
   const handleInputChangeInstructor = (e) => {
     const { name, value } = e.target;
-    const processedValue = name === "estadoId" ? Number(value) : value;
+  
+    // Procesar valor según el campo
+    let processedValue = value;
+    if (name === "EstadoId") {
+      processedValue = Number(value); // Convertir estadoId a número
+    } else if (name === "nombre") {
+      processedValue = value.toUpperCase(); // Convertir nombre a mayúsculas
+    }
+  
+    // Validar el input
     const errorMessage = validateInputInstructor(name, processedValue);
     setFormErrors((prevErrors) => ({
       ...prevErrors,
       [name]: errorMessage,
     }));
+  
+    // Actualizar el estado del formulario
     setFormData((prevData) => ({
       ...prevData,
       [name]: processedValue,
     }));
   };
+  
 
   const handleUpdateInstructor = async () => {
-    const { nombre, correo, celular,  EstadoId } = formData;
+    const { nombre, correo, celular, EstadoId } = formData;
 
     if (!nombre || !correo || !celular || !EstadoId) {
       toast.error("Todos los campos son obligatorios.", {
@@ -168,12 +180,11 @@ const EditinstructorModal = ({ isOpen, onClose, instructor }) => {
     }
   };
 
-  // Función para verificar permisos
   const hasPermission = (permissionName) => {
     return user.DetallePermisos.some(
       (permiso) => permiso.Permiso.nombrePermiso === permissionName
     );
-  };  
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-fondo bg-opacity-50">

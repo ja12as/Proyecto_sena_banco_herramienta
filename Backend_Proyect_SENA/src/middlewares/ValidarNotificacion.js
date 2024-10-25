@@ -16,7 +16,7 @@ export const notifyAction = (actionType) => {
       // Crear la notificación
       await createNotification(usuarioId, actionType, message);
     } catch (error) {
-      console.error("Error creando la notificación:", error.message);
+     /*  console.error("Error creando la notificación:", error.message); */
     }
     next();
   };

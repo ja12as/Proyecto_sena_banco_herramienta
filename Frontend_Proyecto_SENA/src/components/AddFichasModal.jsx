@@ -37,18 +37,17 @@ const AddFichasModal = ({ isOpen, onClose, ficha }) => {
       try {
         const response = await api.get("/Estado");
         const filteredEstados = response.data.filter(
-          estado => estado.id === 1 || estado.id === 2
+          (estado) => estado.id === 1 || estado.id === 2
         );
         setEstados(filteredEstados);
       } catch (error) {
         showToastError("Error al cargar los estados");
       }
     };
-  
+
     fetchStates();
   }, []);
-  
-  
+
   const showToastError = (message) => {
     toast.error(message, {
       position: "top-right",
@@ -93,39 +92,41 @@ const AddFichasModal = ({ isOpen, onClose, ficha }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const processedValue =
-      name === "UsuarioId" || name === "EstadoId"
-        ? Number(value)
-        : value.toUpperCase();
-
+  
+    let processedValue = value;
+    if (name === "UsuarioId" || name === "EstadoId") {
+      processedValue = Number(value);
+    } else if (name === "nombre") {
+      processedValue = value.toUpperCase();
+    }
+  
     const errorMessage = validateInput(name, processedValue);
     setFormErrors((prevErrors) => ({
       ...prevErrors,
       [name]: errorMessage,
     }));
-
+  
     setFormData((prevData) => ({
       ...prevData,
       [name]: processedValue,
     }));
   };
+  
 
   const handleCreate = async () => {
     const { NumeroFicha, Jornada, Programa, EstadoId } = formData;
-  
-    // Validar cada campo con mensajes personalizados
+
     const NumeroFichaError = validateInput("NumeroFicha", NumeroFicha);
     const JornadaError = validateInput("Jornada", Jornada);
     const ProgramaError = validateInput("Programa", Programa);
-  
+
     if (NumeroFichaError || JornadaError || ProgramaError) {
       setFormErrors({
         NumeroFicha: NumeroFichaError,
         Jornada: JornadaError,
         Programa: ProgramaError,
       });
-  
-      // Mostrar mensajes personalizados según el campo con error
+
       if (NumeroFichaError) {
         showToastError("El número de ficha es inválido o está vacío.");
       }
@@ -133,13 +134,14 @@ const AddFichasModal = ({ isOpen, onClose, ficha }) => {
         showToastError("Por favor, selecciona una jornada válida.");
       }
       if (ProgramaError) {
-        showToastError("El campo de programa es obligatorio y debe ser válido.");
+        showToastError(
+          "El campo de programa es obligatorio y debe ser válido."
+        );
       }
-      
-      return; // Detener el proceso si hay errores
+
+      return;
     }
-  
-    // Verificar campos obligatorios
+
     if (!NumeroFicha || !Programa || !Jornada || !EstadoId) {
       if (!NumeroFicha) {
         showToastError("El campo 'Número de Ficha' es obligatorio.");
@@ -155,20 +157,20 @@ const AddFichasModal = ({ isOpen, onClose, ficha }) => {
       }
       return;
     }
-  
+
     setLoading(true);
     try {
       const token = document.cookie.replace(
         /(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/,
         "$1"
       );
-  
+
       const response = await api.post("/Fichas", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       if (response.status === 200) {
         toast.success("Ficha agregada exitosamente", {
           position: "top-right",
@@ -184,15 +186,18 @@ const AddFichasModal = ({ isOpen, onClose, ficha }) => {
           onClose(response.data);
         }, 2000);
       } else {
-        showToastError("Error al agregar la ficha. Verifica los datos e intenta nuevamente.");
+        showToastError(
+          "Error al agregar la ficha. Verifica los datos e intenta nuevamente."
+        );
       }
     } catch (error) {
-      showToastError("Ocurrió un error inesperado. Intenta con un Programa o Jornada diferente.");
+      showToastError(
+        "Ocurrió un error inesperado. Intenta con un Programa o Jornada diferente."
+      );
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
     <div
@@ -241,6 +246,7 @@ const AddFichasModal = ({ isOpen, onClose, ficha }) => {
                     name="Programa"
                     value={formData.Programa}
                     onChange={handleInputChange}
+                    style={{ textTransform: 'uppercase' }}
                   />
                   {formErrors.Programa && (
                     <div className="text-red-400 text-sm mt-1">

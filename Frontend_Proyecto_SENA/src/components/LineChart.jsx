@@ -1,47 +1,51 @@
 import { blue, grey } from "@mui/material/colors";
-import { ResponsiveLine } from '@nivo/line';
+import { ResponsiveLine } from "@nivo/line";
 import { useState, useEffect } from "react";
 import { api } from "../api/token";
 
 const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
   const [chartData, setChartData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const transformData = (pedidos) => {
     const groupedByServidor = pedidos.reduce((acc, pedido) => {
       const servidor = pedido.servidorAsignado;
       const fechaPedido = new Date(pedido.createdAt);
-      const mes = fechaPedido.toLocaleString('default', { month: 'short' }).toLowerCase();
-  
+      const mes = fechaPedido
+        .toLocaleString("default", { month: "short" })
+        .toLowerCase();
+
       if (!acc[servidor]) {
         acc[servidor] = {};
       }
-  
+
       acc[servidor][mes] = (acc[servidor][mes] || 0) + 1;
       return acc;
     }, {});
-  
+
     const formattedData = Object.keys(groupedByServidor).map((servidor) => ({
       id: servidor,
       data: [
-        { x: "ene", y: groupedByServidor[servidor]["ene"] || 0 }, 
-        { x: "feb", y: groupedByServidor[servidor]["feb"] || 0 }, 
-        { x: "mar", y: groupedByServidor[servidor]["mar"] || 0 }, 
-        { x: "abr", y: groupedByServidor[servidor]["abr"] || 0 }, 
-        { x: "may", y: groupedByServidor[servidor]["may"] || 0 }, 
-        { x: "jun", y: groupedByServidor[servidor]["jun"] || 0 }, 
-        { x: "jul", y: groupedByServidor[servidor]["jul"] || 0 }, 
-        { x: "ago", y: groupedByServidor[servidor]["ago"] || 0 }, 
-        { x: "sep", y: groupedByServidor[servidor]["sep"] || 0 }, 
-        { x: "oct", y: groupedByServidor[servidor]["oct"] || 0 }, 
+        { x: "ene", y: groupedByServidor[servidor]["ene"] || 0 },
+        { x: "feb", y: groupedByServidor[servidor]["feb"] || 0 },
+        { x: "mar", y: groupedByServidor[servidor]["mar"] || 0 },
+        { x: "abr", y: groupedByServidor[servidor]["abr"] || 0 },
+        { x: "may", y: groupedByServidor[servidor]["may"] || 0 },
+        { x: "jun", y: groupedByServidor[servidor]["jun"] || 0 },
+        { x: "jul", y: groupedByServidor[servidor]["jul"] || 0 },
+        { x: "ago", y: groupedByServidor[servidor]["ago"] || 0 },
+        { x: "sep", y: groupedByServidor[servidor]["sep"] || 0 },
+        { x: "oct", y: groupedByServidor[servidor]["oct"] || 0 },
         { x: "nov", y: groupedByServidor[servidor]["nov"] || 0 },
         { x: "dic", y: groupedByServidor[servidor]["dic"] || 0 },
       ],
     }));
-  
+
     return formattedData;
   };
 
   const fetchPedidos = async () => {
+    setLoading(true);
     try {
       const response = await api.get("/pedido", {
         headers: {
@@ -52,6 +56,9 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
       setChartData(transformedData);
     } catch (error) {
       console.error("Error al cargar pedidos:", error);
+      setChartData([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,7 +66,11 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
     fetchPedidos();
   }, []);
 
-  return (
+  if (loading) {
+    return <p>Cargando datos...</p>;
+  }
+
+  return chartData.length > 0 ? (
     <ResponsiveLine
       data={chartData}
       theme={{
@@ -95,15 +106,28 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
           },
         },
       }}
-      colors={["#00C49F", "#FFBB28", "#FF8042", "#0088FE"]} 
+      colors={["#00C49F", "#FFBB28", "#FF8042", "#0088FE"]}
       margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
       xScale={{
-        type: "band", 
-        domain: ["ene", "feb", "mar","abr","may","jun","jul","ago","sep","oct", "nov", "dic"],
+        type: "band",
+        domain: [
+          "ene",
+          "feb",
+          "mar",
+          "abr",
+          "may",
+          "jun",
+          "jul",
+          "ago",
+          "sep",
+          "oct",
+          "nov",
+          "dic",
+        ],
       }}
       yScale={{
         type: "linear",
-        min: 0, 
+        min: 0,
         max: "auto",
         stacked: false,
         reverse: false,
@@ -166,6 +190,8 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
         },
       ]}
     />
+    ) : (
+      <p>Cargando datos...</p>
   );
 };
 

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api/token";
 import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 
 const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
@@ -28,7 +28,7 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
   });
 
   const { user } = useAuth();
-  
+
   useEffect(() => {
     if (isOpen && prestamo) {
       fetchPrestamoDetails(prestamo.id);
@@ -49,7 +49,9 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
         const response = await api.get("/instructores");
         setInstructores(response.data);
       } catch (error) {
-        toast.error("Error al cargar los instructores", { position: "top-right" });
+        toast.error("Error al cargar los instructores", {
+          position: "top-right",
+        });
       }
     };
 
@@ -58,7 +60,9 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
         const response = await api.get("/herramientas");
         setHerramientas(response.data);
       } catch (error) {
-        toast.error("Error al cargar las herramientas", { position: "top-right" });
+        toast.error("Error al cargar las herramientas", {
+          position: "top-right",
+        });
       }
     };
     const fetchEstados = async () => {
@@ -90,7 +94,7 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
           fechaPrestamo,
           fechaDevolucion,
           estado,
-          observaciones
+          observaciones,
         } = response.data;
         setFormData({
           id,
@@ -102,11 +106,14 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
           fechaPrestamo,
           fechaDevolucion,
           estado,
-          observaciones
+          observaciones,
         });
         setLoading(false);
       } else {
-        console.error("Error fetching prestamo details:", response.data.message);
+        console.error(
+          "Error fetching prestamo details:",
+          response.data.message
+        );
         toast.error("Error al cargar la información del préstamo.", {
           position: "top-right",
         });
@@ -125,8 +132,12 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
     let errorMessage = "";
     if (name === "cantidad" && value <= 0) {
       errorMessage = "La cantidad debe ser mayor que cero.";
-    } else if (name === "fechaDevolucion" && new Date(value) <= new Date(formData.fechaPrestamo)) {
-      errorMessage = "La fecha de devolución debe ser posterior a la fecha de préstamo.";
+    } else if (
+      name === "fechaDevolucion" &&
+      new Date(value) <= new Date(formData.fechaPrestamo)
+    ) {
+      errorMessage =
+        "La fecha de devolución debe ser posterior a la fecha de préstamo.";
     }
     return errorMessage;
   };
@@ -155,10 +166,19 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
       fechaPrestamo,
       fechaDevolucion,
       estado,
-      observaciones
+      observaciones,
     } = formData;
 
-    if (!idFicha || !idUsuario || !idInstructor || !idHerramienta || !cantidad || !fechaPrestamo || !fechaDevolucion || !estado) {
+    if (
+      !idFicha ||
+      !idUsuario ||
+      !idInstructor ||
+      !idHerramienta ||
+      !cantidad ||
+      !fechaPrestamo ||
+      !fechaDevolucion ||
+      !estado
+    ) {
       toast.error("Todos los campos obligatorios deben ser completados.", {
         position: "top-right",
       });
@@ -177,7 +197,7 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
           fechaPrestamo,
           fechaDevolucion,
           estado,
-          observaciones
+          observaciones,
         },
         {
           headers: {
@@ -220,15 +240,18 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
     }
   };
 
-  // Función para verificar permisos
   const hasPermission = (permissionName) => {
     return user.DetallePermisos.some(
       (permiso) => permiso.Permiso.nombrePermiso === permissionName
     );
-  }; 
-   
+  };
+
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 ${isOpen ? "" : "hidden"}`}>
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 ${
+        isOpen ? "" : "hidden"
+      }`}
+    >
       <div className="bg-white rounded-lg shadow-lg sm:w-full md:w-1/4 mt-4 max-h-screen overflow-y-auto">
         <div className="flex justify-end p-1">
           <button onClick={onClose}>
@@ -263,7 +286,9 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">ID-Usuario *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    ID-Usuario *
+                  </label>
                   <input
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     type="text"
@@ -273,7 +298,9 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">ID-Instructor *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    ID-Instructor *
+                  </label>
                   <input
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     type="text"
@@ -283,7 +310,9 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">ID-Herramienta *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    ID-Herramienta *
+                  </label>
                   <input
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     type="text"
@@ -302,11 +331,15 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
                     onChange={handleInputChange}
                   />
                   {formErrors.cantidad && (
-                    <p className="text-red-500 text-xs">{formErrors.cantidad}</p>
+                    <p className="text-red-500 text-xs">
+                      {formErrors.cantidad}
+                    </p>
                   )}
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">Fecha Préstamo *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    Fecha Préstamo *
+                  </label>
                   <input
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     type="date"
@@ -316,7 +349,9 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">Fecha Devolución *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    Fecha Devolución *
+                  </label>
                   <input
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     type="date"
@@ -325,7 +360,9 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
                     onChange={handleInputChange}
                   />
                   {formErrors.fechaDevolucion && (
-                    <p className="text-red-500 text-xs">{formErrors.fechaDevolucion}</p>
+                    <p className="text-red-500 text-xs">
+                      {formErrors.fechaDevolucion}
+                    </p>
                   )}
                 </div>
                 <div className="flex flex-col">
@@ -345,7 +382,9 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
                   </select>
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">Observaciones</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    Observaciones
+                  </label>
                   <textarea
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     name="observaciones"
@@ -377,4 +416,5 @@ const EditPrestamoModal = ({ isOpen, onClose, prestamo }) => {
     </div>
   );
 };
+
 export default EditPrestamoModal;

@@ -10,18 +10,18 @@ const EditCantidadEntradaModal = ({ isOpen, onClose, product }) => {
   const [formErrors, setFormErrors] = useState({});
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    cantidad_entrada: "",
+    cantidadEntrada: "", // Cambia a 'cantidadEntrada' según el backend
   });
 
   useEffect(() => {
     if (isOpen && product) {
-      setFormData({ cantidad_entrada: product.cantidad_entrada || "" });
+      setFormData({ cantidadEntrada: product.cantidadEntrada || "" }); // Cambia aquí también
     }
   }, [isOpen, product]);
 
   const validateInput = (name, value) => {
     let errorMessage = "";
-    if (name === "cantidad_entrada") {
+    if (name === "cantidadEntrada") { // Actualiza el nombre del campo aquí
       if (isNaN(value) || value <= 0) {
         errorMessage = "La cantidad de entrada debe ser un número positivo.";
       }
@@ -43,9 +43,9 @@ const EditCantidadEntradaModal = ({ isOpen, onClose, product }) => {
   };
 
   const handleUpdate = async () => {
-    const { cantidad_entrada } = formData;
+    const { cantidadEntrada } = formData; // Usa 'cantidadEntrada'
 
-    if (!cantidad_entrada) {
+    if (!cantidadEntrada) {
       toast.error("El campo de cantidad de entrada es obligatorio.", {
         position: "top-right",
       });
@@ -56,8 +56,8 @@ const EditCantidadEntradaModal = ({ isOpen, onClose, product }) => {
 
     try {
       const response = await api.put(
-        `/productos/${product.id}`,
-        { cantidad_entrada },
+        `/producto/${product.id}/cantidad`, // Ruta actualizada para coincidir con el backend
+        { cantidadEntrada }, // Asegúrate de que envíes 'cantidadEntrada'
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -128,13 +128,13 @@ const EditCantidadEntradaModal = ({ isOpen, onClose, product }) => {
                       <input
                         className="bg-grisClaro text-xs rounded-lg px-1 py-1"
                         type="number"
-                        name="cantidad_entrada"
-                        value={formData.cantidad_entrada}
+                        name="cantidadEntrada" // Actualiza el nombre del input
+                        value={formData.cantidadEntrada} // Usa 'cantidadEntrada'
                         onChange={handleInputChange}
                       />
-                      {formErrors.cantidad_entrada && (
+                      {formErrors.cantidadEntrada && (
                         <div className="text-red-400 text-xs mt-0.5">
-                          {formErrors.cantidad_entrada}
+                          {formErrors.cantidadEntrada}
                         </div>
                       )}
                     </div>
@@ -149,7 +149,10 @@ const EditCantidadEntradaModal = ({ isOpen, onClose, product }) => {
             <button className="btn-danger2 mx-1 text-xs" onClick={onClose}>
               Cancelar
             </button>
-            <button className="btn-primary2 mx-1 text-xs" onClick={handleUpdate}>
+            <button
+              className="btn-primary2 mx-1 text-xs"
+              onClick={handleUpdate}
+            >
               Actualizar
             </button>
           </div>

@@ -38,6 +38,13 @@
     @apply font-inter py-2 px-4 rounded bg-input rounded-lg;
 }
 
+/* Asegúrate de que no haya conflictos en los estilos relacionados con disabled */
+.btn-black2:disabled {
+  opacity: 0.5; /* Solo un ejemplo */
+  cursor: not-allowed;
+}
+
+
   /* ELEMENTOS PARA LA TABLA PRODUCTOS */
   .custom-table .MuiTableCell-root {
     padding: 0px 0px; /* EL PADDING DE LOS DATOS DE LAS TABLAS */

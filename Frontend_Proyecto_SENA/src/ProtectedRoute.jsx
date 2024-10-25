@@ -2,7 +2,11 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import LinearProgress from "@mui/material/LinearProgress";
 
-const ProtectedRoute = ({ requiredRoleId, requiredRoleIds, requiredPermission }) => {
+const ProtectedRoute = ({
+  requiredRoleId,
+  requiredRoleIds,
+  requiredPermission,
+}) => {
   const { isAuthenticated, loading, user } = useAuth();
 
   if (loading) {
@@ -25,7 +29,12 @@ const ProtectedRoute = ({ requiredRoleId, requiredRoleIds, requiredPermission })
     return <Navigate to="/no-permission" replace />;
   }
 
-  if (requiredPermission && !user?.DetallePermisos.some(p => p.Permiso.nombrePermiso === requiredPermission)) {
+  if (
+    requiredPermission &&
+    !user?.DetallePermisos.some(
+      (p) => p.Permiso.nombrePermiso === requiredPermission
+    )
+  ) {
     return <Navigate to="/no-permission" replace />;
   }
 

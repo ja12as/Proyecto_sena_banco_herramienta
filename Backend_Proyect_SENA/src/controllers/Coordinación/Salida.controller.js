@@ -4,31 +4,41 @@ import Pedido from "../../models/Pedido.js";
 import PedidoProducto from "../../models/PedidoProducto.js";
 import nodemailer from "nodemailer";
 import Estado from "../../models/Estado.js";
+import Historial from "../../models/Historial.js";
+import { createNotification } from "../../helpers/Notificacion.helpers.js";
 
 export const actualizarSalidaProducto = async (req, res) => {
   const { id } = req.params; 
   const { productos } = req.body; 
 
-  console.log("Datos recibidos para actualizar salida:", req.body);
-
   try {
     const UsuarioId = req.usuario.id;
-    const usuarioNombre = req.usuario.nombre; 
+    const usuarioNombre = req.usuario.nombre;
 
     const pedido = await Pedido.findByPk(id, {
-      include: [{ model: Producto, through: { attributes: ['cantidadSalida', 'cantidadSolicitar'] } }],
+      include: [{ model: Producto, through: { attributes: ['cantidadSalida', 'cantidadSolicitar', 'observaciones'] } }],
     });
 
     if (!pedido) {
-      return res.status(404).json({ message: `Pedido con id ${id} no encontrado.`});
+      return res.status(404).json({ message: `Pedido con id ${id} no encontrado.` });
     }
-    for (const producto of productos) {
-      if (typeof producto.cantidadSalida !== 'number' || isNaN(producto.cantidadSalida) || producto.cantidadSalida < 0) {
-          return res.status(400).json({ message: `La cantidad de salida para el producto ${producto.ProductoId} no es válida.` });
-      }
-  }
 
     for (const producto of productos) {
+
+      const productoData = await Producto.findByPk(producto.ProductoId);
+
+      if (!productoData) {
+        return res.status(404).json({ message: `Producto con id ${producto.ProductoId} no encontrado.` });
+      }
+
+      const cantidadDisponible = productoData.cantidadActual;
+
+      if (producto.cantidadSalida > cantidadDisponible) {
+        return res.status(400).json({
+          message: `La cantidad solicitada para el producto ${producto.ProductoId} excede la cantidad disponible. Cantidad disponible: ${cantidadDisponible}.`
+        });
+      }
+
       const pedidoProducto = await PedidoProducto.findOne({
         where: {
           PedidoId: pedido.id,
@@ -40,53 +50,49 @@ export const actualizarSalidaProducto = async (req, res) => {
         return res.status(404).json({ message: `El producto con id ${producto.ProductoId} no está asociado a este pedido.` });
       }
 
-      const cantidadSolicitar = pedidoProducto.cantidadSolicitar - pedidoProducto.cantidadSalida;
-      if (producto.cantidadSalida > cantidadSolicitar) {
-        return res.status(400).json({ message: `La cantidad solicitada para el producto ${producto.ProductoId} excede la cantidad disponible.` });
-      }
+      pedidoProducto.observaciones = (producto.observaciones && typeof producto.observaciones === "string" && producto.observaciones.trim() !== "") 
+      ? producto.observaciones.trim() 
+      : "N/A";
 
+      // Actualizar la cantidad de salida y la cantidad en inventario
       pedidoProducto.cantidadSalida += producto.cantidadSalida;
       await pedidoProducto.save();
 
-      const productoData = await Producto.findByPk(producto.ProductoId);
-      if (!productoData) {
-        return res.status(404).json({ message: `Producto con id ${producto.ProductoId} no encontrado.` });
-      }
+      productoData.cantidadActual -= producto.cantidadSalida;
+      productoData.cantidadSalida = (productoData.cantidadSalida || 0) + producto.cantidadSalida;
 
-      if (productoData.cantidadActual < producto.cantidadSalida) {
-        return res.status(400).json({ message: `No hay suficiente cantidad en inventario para el producto ${producto.ProductoId}.` });
-      }
-
-      productoData.cantidadActual -= producto.cantidadSalida; 
-      productoData.cantidadSalida = (productoData.cantidadSalida || 0) + producto.cantidadSalida; 
-      
+      // Verificar si la cantidad restante es baja y cambiar el estado a "AGOTADO" si es necesario
       if (productoData.cantidadActual <= 2) {
         const estadoAgotado = await Estado.findOne({ where: { estadoName: "AGOTADO" } });
         if (estadoAgotado) {
-          productoData.EstadoId = estadoAgotado.id; 
+          productoData.EstadoId = estadoAgotado.id;
         }
       }
 
       await productoData.save();
-      const mensajeNotificacion = `El Usuario ${usuarioNombre} entrego el pedido del servicor (${pedido.servidorAsignado}, para la ficha: ${pedido.codigoFicha}) el ${new Date().toLocaleDateString()}.`;
-      await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
-
-        const estadoEntregado = await Estado.findByPk(7);
-        if (!estadoEntregado) {
-          return res.status(400).json({ message: "El estado de 'Entregado' no existe." });
-        }
-
-        pedido.EstadoId = estadoEntregado.id;
-        await pedido.save();
-
-  
     }
 
+    const descripcionHistorial = `El usuario ${usuarioNombre} realizó la entrega de productos para el pedido con servidor asignado: ${pedido.servidorAsignado}, jefe de oficina: ${pedido.jefeOficina}, código de ficha: ${pedido.codigoFicha}.`;
+
+    await Historial.create({
+      UsuarioId: UsuarioId,
+      tipoAccion: 'ENTREGA',
+      descripcion: descripcionHistorial,
+    });
+
+    const mensajeNotificacion = `El Usuario ${usuarioNombre} entregó el pedido para el servidor ${pedido.servidorAsignado} (Ficha: ${pedido.codigoFicha}, Jefe de Oficina: ${pedido.jefeOficina})`;
+    await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+
+    const estadoEntregado = await Estado.findByPk(7);
+    if (!estadoEntregado) {
+      return res.status(400).json({ message: "El estado de 'Entregado' no existe." });
+    }
+
+    pedido.EstadoId = estadoEntregado.id;
+    await pedido.save();
+
     try {
-      console.log("Enviando correo de notificación para el pedido:", pedido);
-      console.log("Correo del pedido:", pedido.correo); 
-      await enviarCorreoNotificacion(pedido);
-      console.log("Correo enviado exitosamente");
+      await enviarCorreoNotificacion(pedido, mensajeNotificacion);
     } catch (error) {
       console.error("Error al enviar el correo:", error);
     }
@@ -101,8 +107,12 @@ export const actualizarSalidaProducto = async (req, res) => {
 
 
 
+
+
+
+
 const enviarCorreoNotificacion = async (pedido) => {
-  // Obtener los productos del pedido junto con la información de la tabla intermedia
+
   const pedidoConProductos = await Pedido.findByPk(pedido.id, {
     include: [
       {
@@ -114,7 +124,9 @@ const enviarCorreoNotificacion = async (pedido) => {
     ],
   });
 
-  // Construir el contenido HTML del correo
+  const formatFecha = (fecha) =>
+    fecha ? fecha.toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Sin fecha';
+
   let tablaProductos = `
     <table border="1" cellpadding="5" cellspacing="0">
       <thead>
@@ -123,21 +135,22 @@ const enviarCorreoNotificacion = async (pedido) => {
           <th>Cantidad Solicitada</th>
           <th>Cantidad Entregada</th>
           <th>Observaciones</th>
+          <th>Fecha Entrega</th>
         </tr>
       </thead>
       <tbody>`;
 
-  // Agregar una fila para cada producto
   pedidoConProductos.Productos.forEach((producto) => {
-    const { nombre } = producto; // Nombre del producto
-    const { cantidadSolicitar, cantidadSalida, observaciones} = producto.PedidoProducto; // Cantidad solicitada y entregada
+    const { nombre } = producto;
+    const { cantidadSolicitar, cantidadSalida, observaciones} = producto.PedidoProducto; 
 
     tablaProductos += `
       <tr>
         <td>${nombre}</td>
         <td>${cantidadSolicitar}</td>
         <td>${cantidadSalida}</td>
-        <td>${observaciones}</td>
+        <td>${observaciones || 'N/A'}</td>
+        <td>${formatFecha(pedido.updatedAt)}</td>
       </tr>`;
   });
 
@@ -152,7 +165,7 @@ const enviarCorreoNotificacion = async (pedido) => {
         pass: "xieo yngh kruv rsta", 
       },
     });
-  // Contenido HTML del correo
+
   const mailOptions = {
     from: 'inventariodelmobiliario@gmail.com',
     to: pedido.correo, 
@@ -161,11 +174,11 @@ const enviarCorreoNotificacion = async (pedido) => {
     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
       <h2 style="color: #007BFF;">¡Hola ${pedido.servidorAsignado}!</h2>
       <p>
-        Nos complace informarte que tu pedido del día <strong>${pedido.createdAt.toLocaleDateString()}</strong> para la ficha 
+        Nos complace informarte que tu pedido del día <strong>${formatFecha(pedido.createdAt)}</strong> para la ficha 
         <strong>${pedido.codigoFicha}</strong> ya está listo para ser recogido.
       </p>
       <p>
-        Puedes pasar por el en horario del personal del banco de herramientas. 
+        Puedes pasar por el banco de herramientas en horario de atención. 
       </p>
       <p style="font-weight: bold; color: #28A745;">
         ¡Gracias por tu confianza!
@@ -176,6 +189,6 @@ const enviarCorreoNotificacion = async (pedido) => {
   `,
   };
 
-  // Enviar el correo
+
   await transporter.sendMail(mailOptions);
 }; 

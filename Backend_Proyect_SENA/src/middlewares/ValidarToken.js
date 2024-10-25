@@ -24,11 +24,11 @@ export const rutaProtegida = async (req, res, next) => {
     }
 
     req.usuario = data.usuario;
-    console.log("Usuario autenticado asignado:", req.usuario);
+   /*  console.log("Usuario autenticado asignado:", req.usuario); */
 
     next();
   } catch (error) {
-    console.error("Error en la autenticación:", error.message);
+/*     console.error("Error en la autenticación:", error.message); */
     return res
       .status(500)
       .json({ message: "Error de autenticación: " + error.message });

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../api/token";
 import { grey } from "@mui/material/colors";
-import { ResponsivePie } from '@nivo/pie';
+import { ResponsivePie } from "@nivo/pie";
 
 const PieChart = () => {
   const [data, setData] = useState([]);
@@ -14,24 +14,31 @@ const PieChart = () => {
 
         const productosPromises = pedidos.map(async (pedido) => {
           const productosResponse = await api.get(`/pedido/${pedido.id}`);
-          return { codigoFicha: pedido.codigoFicha, productos: productosResponse.data.Productos };
+          return {
+            codigoFicha: pedido.codigoFicha,
+            productos: productosResponse.data.Productos,
+          };
         });
 
         const pedidosConProductos = await Promise.all(productosPromises);
 
         const groupedData = pedidosConProductos.reduce((acc, pedido) => {
-          const existingFicha = acc.find(item => item.codigoFicha === pedido.codigoFicha);
+          const existingFicha = acc.find(
+            (item) => item.codigoFicha === pedido.codigoFicha
+          );
 
           if (existingFicha) {
             existingFicha.totalProductos += pedido.productos.reduce(
-              (total, producto) => total + producto.PedidoProducto.cantidadSalida,
+              (total, producto) =>
+                total + producto.PedidoProducto.cantidadSalida,
               0
             );
           } else {
             acc.push({
               codigoFicha: pedido.codigoFicha,
               totalProductos: pedido.productos.reduce(
-                (total, producto) => total + producto.PedidoProducto.cantidadSalida,
+                (total, producto) =>
+                  total + producto.PedidoProducto.cantidadSalida,
                 0
               ),
             });
@@ -40,7 +47,7 @@ const PieChart = () => {
           return acc;
         }, []);
 
-        const chartData = groupedData.map(item => ({
+        const chartData = groupedData.map((item) => ({
           id: item.codigoFicha,
           label: item.codigoFicha,
           value: item.totalProductos,

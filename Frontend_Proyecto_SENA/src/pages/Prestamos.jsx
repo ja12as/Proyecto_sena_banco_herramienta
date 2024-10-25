@@ -6,14 +6,14 @@ import { toast, ToastContainer } from "react-toastify";
 import MUIDataTable from "mui-datatables";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import IconButton from "@mui/material/IconButton";
-import SidebarCoord from "../components/SidebarCoord";
+import Sidebar from './../components/Sidebar';
 import clsx from "clsx";
 import * as XLSX from "xlsx";
 import Home from "../components/Home";
 import "react-toastify/dist/ReactToastify.css";
 
 const Prestamos = () => {
-  const [sidebarToggleCoord, setsidebarToggleCoord] = useState(false);
+  const [sidebarToggle, setsidebarToggle] = useState(false);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState([
@@ -217,16 +217,16 @@ const Prestamos = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-fondo">
-      <SidebarCoord sidebarToggleCoord={sidebarToggleCoord} />
-      <div
-        className={`flex flex-col flex-grow p-4 bg-fondo ${
-          sidebarToggleCoord ? "ml-64" : ""
+    <div className="flex min-h-screen">
+    <Sidebar sidebarToggle={sidebarToggle} />
+    <div
+        className={`flex flex-col flex-grow p-4  ${
+            sidebarToggle ? "ml-64" : ""
         } mt-16`}
-      >
+        >
         <Home
-          sidebarToggle={sidebarToggleCoord}
-          setSidebarToggle={setsidebarToggleCoord}
+            sidebarToggle={sidebarToggle}
+            setSidebarToggle={setsidebarToggle}
         />
         <div className="flex-grow flex items-center justify-center">
           <div className="max-w-6xl mx-auto">

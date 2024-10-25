@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api/token";
 import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 
 const EditFichasModal = ({ isOpen, onClose, ficha }) => {
@@ -19,7 +19,7 @@ const EditFichasModal = ({ isOpen, onClose, ficha }) => {
   });
 
   const { user } = useAuth();
-  
+
   useEffect(() => {
     if (isOpen && ficha) {
       fetchUserDetails(ficha.id);
@@ -31,14 +31,14 @@ const EditFichasModal = ({ isOpen, onClose, ficha }) => {
       try {
         const response = await api.get("/Estado");
         const filteredEstados = response.data.filter(
-          estado => estado.id === 1 || estado.id === 2
+          (estado) => estado.id === 1 || estado.id === 2
         );
         setEstados(filteredEstados);
       } catch (error) {
         showToastError("Error al cargar los estados");
       }
     };
-  
+
     fetchStates();
   }, []);
 
@@ -47,8 +47,7 @@ const EditFichasModal = ({ isOpen, onClose, ficha }) => {
     try {
       const response = await api.get(`/Fichas/${userId}`);
       if (response.status === 200) {
-        const { NumeroFicha, Programa, Jornada, EstadoId } =
-          response.data;
+        const { NumeroFicha, Programa, Jornada, EstadoId } = response.data;
         setFormData({
           NumeroFicha: NumeroFicha || "",
           Programa: Programa || "",
@@ -109,7 +108,7 @@ const EditFichasModal = ({ isOpen, onClose, ficha }) => {
   const handleUpdate = async () => {
     const { NumeroFicha, Jornada, Programa, estadoId } = formData;
 
-    if (!NumeroFicha || !Jornada || !Programa ||!estadoId) {
+    if (!NumeroFicha || !Jornada || !Programa || !estadoId) {
       toast.error("Todos los campos son obligatorios.", {
         position: "top-right",
       });
@@ -172,7 +171,7 @@ const EditFichasModal = ({ isOpen, onClose, ficha }) => {
     return user.DetallePermisos.some(
       (permiso) => permiso.Permiso.nombrePermiso === permissionName
     );
-  };  
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-fondo bg-opacity-50">
@@ -237,7 +236,6 @@ const EditFichasModal = ({ isOpen, onClose, ficha }) => {
                     <option value="NOCHE">NOCHE</option>
                   </select>
                 </div>
-
 
                 <div className="flex flex-col">
                   <label className="mb-1 font-bold text-sm">Estado *</label>

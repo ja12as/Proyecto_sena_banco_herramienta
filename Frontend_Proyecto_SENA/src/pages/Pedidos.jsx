@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { api } from "../api/token";
 import { useNavigate } from "react-router-dom";
 import { saveAs } from "file-saver";
-import SidebarCoord from "../components/SidebarCoord";
+import Sidebar from "../components/Sidebar";
 import Home from "../components/Home";
 import MUIDataTable from "mui-datatables";
 import IconButton from "@mui/material/IconButton";
@@ -10,10 +10,12 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import * as XLSX from "xlsx";
 import clsx from "clsx";
 import { toast, ToastContainer } from "react-toastify";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
 
 const Pedidos = () => {
-  const [sidebarToggleCoord, setsidebarToggleCoord] = useState(false);
+  const [sidebarToggle, setsidebarToggle] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [data, setData] = useState([
@@ -45,7 +47,7 @@ const Pedidos = () => {
         progress: undefined,
       });
     }
-  }; 
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -83,14 +85,14 @@ const Pedidos = () => {
   }, []);
 
   const handleViewClick = (rowIndex) => {
-    const Pedido = data[rowIndex]; 
-    navigate("/gestionarPedidos", { state: { pedidoId: Pedido.id } }); 
-  }; 
+    const Pedido = data[rowIndex];
+    navigate("/gestionarPedidos", { state: { pedidoId: Pedido.id } });
+  };
 
   function formatDate(dateString) {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0"); 
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   }
@@ -109,10 +111,8 @@ const Pedidos = () => {
           </th>
         ),
         customBodyRender: (value) => (
-          <div className="text-center"> 
-           {formatDate(value)} 
-           </div>
-          ),
+          <div className="text-center">{formatDate(value)}</div>
+        ),
       },
     },
     {
@@ -176,7 +176,7 @@ const Pedidos = () => {
           <div
             className={clsx("text-center", {
               "text-green-500": value === "ENTREGADO",
-              "text-orange-500": value === "EN PROCESO",
+              "text-yellow-500": value === "EN PROCESO",
               "text-red-500": value === "PENDIENTE",
             })}
           >
@@ -235,19 +235,66 @@ const Pedidos = () => {
     saveAs(data, "Pedidos.xlsx");
   };
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const tableColumn = [
+      "Fecha",
+      "Nombre Solicitante",
+      "Ficha",
+      "Area",
+      "Estado"
+    ];
+    const tableRows = [];
+
+    data.forEach((pedido) => {
+      const pedidoData = [
+        pedido.createdAt || "",
+        pedido.servidorAsignado || "",
+        pedido.codigoFicha || "",
+        pedido.area || "",
+        pedido.estadoName || "",
+      ];
+      tableRows.push(pedidoData);
+    });
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+      theme: "striped",
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [0, 57, 107] },
+      margin: { top: 10 },
+    });
+
+    doc.text("Listado de Pedidos productos", 14, 15);
+    doc.save("Pedidos.pdf");
+  };
+
   return (
     <div className="flex min-h-screen bg-fondo">
-      <SidebarCoord sidebarToggleCoord={sidebarToggleCoord} />
+      <Sidebar sidebarToggle={sidebarToggle} />
       <div
         className={`flex flex-col flex-grow p-4 bg-fondo ${
-          sidebarToggleCoord ? "ml-64" : ""
+          sidebarToggle ? "ml-64" : ""
         } mt-16`}
       >
         <Home
-          sidebarToggle={sidebarToggleCoord}
-          setSidebarToggle={setsidebarToggleCoord}
+          sidebarToggle={sidebarToggle}
+          setSidebarToggle={setsidebarToggle}
         />
-        <div className="flex-grow flex items-center justify-center">
+
+        {/* Contenedor para los botones */}
+        <div className="flex justify-end mt-6 fixed top-16 right-6 z-10">
+          <button className="btn-black mr-2" onClick={handleExportPDF}>
+            Exportar PDF
+          </button>
+        </div>
+
+        {/* Contenedor de la tabla */}
+        <div className="flex-grow flex items-center justify-center mt-16">
+          {" "}
+          {/* Añadir mt-16 para espacio */}
           <div className="max-w-6xl mx-auto">
             {loading ? (
               <div className="text-center">Cargando Pedidos...</div>

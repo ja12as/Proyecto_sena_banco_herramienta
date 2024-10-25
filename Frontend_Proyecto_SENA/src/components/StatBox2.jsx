@@ -7,6 +7,7 @@ import NewProgressCircle2 from "./NewProgressCircle2";
 const StatBox2 = ({ icon }) => {
   const [productoMasAgotado, setProductoMasAgotado] = useState(null);
   const [porcentajeDisponible, setPorcentajeDisponible] = useState(0);
+  const [cargando, setCargando] = useState(true); // Estado para manejar la carga
 
   useEffect(() => {
     const fetchProductos = async () => {
@@ -14,6 +15,13 @@ const StatBox2 = ({ icon }) => {
         const response = await api.get("/producto");
         const productos = response.data;
 
+        // Verifica si hay productos
+        if (productos.length === 0) {
+          setCargando(false); // Cambia a no cargando si no hay productos
+          return;
+        }
+
+        // Encuentra el producto con menor disponibilidad
         const productoConMenorDisponibilidad = productos.reduce((a, b) => {
           const porcentajeA = (a.cantidadActual / a.cantidadEntrada) * 100;
           const porcentajeB = (b.cantidadActual / b.cantidadEntrada) * 100;
@@ -29,14 +37,23 @@ const StatBox2 = ({ icon }) => {
         setPorcentajeDisponible(porcentaje);
       } catch (error) {
         console.error("Error al obtener los productos", error);
+      } finally {
+        setCargando(false); // Cambia a no cargando después de la carga
       }
     };
 
     fetchProductos();
   }, []);
 
-  if (!productoMasAgotado) {
+  if (cargando) {
     return <Typography>Cargando...</Typography>;
+  }
+
+  // Si no hay productos, muestra un mensaje adecuado
+  if (!productoMasAgotado) {
+    return (
+      <Typography>No hay productos disponibles en este momento.</Typography>
+    );
   }
 
   return (

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../api/token";
 import { saveAs } from "file-saver";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import Sidebar from "../components/Sidebar";
 import Home from "../components/Home";
 import MUIDataTable from "mui-datatables";
@@ -78,9 +78,11 @@ const Categorias = () => {
       label: "ID",
       options: {
         customHeadRender: (columnMeta) => (
-          <th 
+          <th
             key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
         ),
         customBodyRender: (value) => <div className="text-center">{value}</div>,
@@ -91,9 +93,11 @@ const Categorias = () => {
       label: "CATEGORIA",
       options: {
         customHeadRender: (columnMeta) => (
-          <th 
+          <th
             key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
         ),
         customBodyRender: (value) => <div className="text-center">{value}</div>,
@@ -104,9 +108,11 @@ const Categorias = () => {
       label: "ESTADO",
       options: {
         customHeadRender: (columnMeta) => (
-          <th 
+          <th
             key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
         ),
         customBodyRender: (value) => (
@@ -127,9 +133,11 @@ const Categorias = () => {
       options: {
         filter: false,
         customHeadRender: (columnMeta) => (
-          <th 
+          <th
             key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
         ),
         customBodyRender: (value, tableMeta, updateValue) => (
@@ -163,12 +171,11 @@ const Categorias = () => {
     saveAs(data, "Categorias.xlsx");
   };
 
-  // Función para verificar permisos
   const hasPermission = (permissionName) => {
     return user.DetallePermisos.some(
       (permiso) => permiso.Permiso.nombrePermiso === permissionName
     );
-  };  
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -198,7 +205,7 @@ const Categorias = () => {
               <div className="text-center">Cargando categorias...</div>
             ) : (
               <MUIDataTable
-                title={<span className="custom-title">CATEGORIAS</span>} 
+                title={<span className="custom-title">CATEGORIAS</span>}
                 data={data}
                 columns={columns}
                 options={{

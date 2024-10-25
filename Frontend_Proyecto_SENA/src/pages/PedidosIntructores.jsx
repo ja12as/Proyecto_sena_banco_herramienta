@@ -63,45 +63,49 @@ const PedidosIntructores = () => {
 
   const validateInput = (name, value) => {
     let errorMessage = "";
-  
-    // Validar que solo ingresen nombres en los campos de nombres
+
     if (["area", "jefeOficina", "servidorAsignado"].includes(name)) {
-      const nameRegex = /^[A-Za-z\s]+$/; // Solo letras y espacios permitidos
+      const nameRegex = /^[A-Za-z\s]+$/; 
       if (!nameRegex.test(value)) {
         errorMessage = "No puede contener números o caracteres especiales.";
       }
     }
-  
-    // Validar el formato de correo electrónico
+
     if (name === "correo") {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Expresión regular para correos
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
       if (!emailRegex.test(value)) {
         errorMessage = "Por favor, ingresa un correo electrónico válido.";
       }
     }
-  
+
     return errorMessage;
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const errorMessage = validateInput(name, value);
+
+    // Convertir a mayúsculas si es necesario
+    const upperCasedValue = ["area", "jefeOficina", "servidorAsignado"].includes(name)
+      ? value.toUpperCase()
+      : value;
+
+    const errorMessage = validateInput(name, upperCasedValue);
     setFormErrors((prevErrors) => ({
       ...prevErrors,
       [name]: errorMessage,
     }));
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: upperCasedValue,
     }));
   };
+
 
   const handleProductChange = (updatedProducts) => {
     setFormData({ ...formData, productos: updatedProducts });
   };
 
   const handleCreate = async () => {
-
     const {
       codigoFicha,
       area,
@@ -112,31 +116,76 @@ const PedidosIntructores = () => {
       correo,
       productos,
     } = formData;
-
-    if (
-      !codigoFicha ||
-      !area ||
-      !jefeOficina ||
-      !cedulaJefeOficina ||
-      !servidorAsignado ||
-      !cedulaServidor ||
-      !correo ||
-      !productos.some((p) => p.ProductoId && p.cantidadSolicitar)
-    ) {
-      showToastError("Todos los campos son obligatorios.");
+  
+    // Validaciones individuales de los campos
+    if (!codigoFicha) {
+      showToastError("El campo 'Código de Ficha' es obligatorio.");
       return;
     }
-
+    
+    if (!area) {
+      showToastError("El campo 'Área' es obligatorio.");
+      return;
+    }
+  
+    if (!jefeOficina) {
+      showToastError("El campo 'Jefe de Oficina' es obligatorio.");
+      return;
+    }
+  
+    if (!cedulaJefeOficina) {
+      showToastError("El campo 'Cédula del Jefe de Oficina' es obligatorio.");
+      return;
+    }
+  
+    if (!servidorAsignado) {
+      showToastError("El campo 'Servidor Asignado' es obligatorio.");
+      return;
+    }
+  
+    if (!cedulaServidor) {
+      showToastError("El campo 'Cédula del Servidor' es obligatorio.");
+      return;
+    }
+  
+    if (!correo) {
+      showToastError("El campo 'Correo' es obligatorio.");
+      return;
+    }
+  
+    // Validar que haya productos con ProductoId y cantidadSolicitar
+    if (!productos || productos.length === 0) {
+      showToastError("Debe agregar al menos un producto.");
+      return;
+    }
+  
+    // Validar cada producto individualmente
+    for (let i = 0; i < productos.length; i++) {
+      if (!productos[i].ProductoId) {
+        showToastError(`El campo 'Producto' es obligatorio en la fila ${i + 1}.`);
+        return;
+      }
+  
+      if (!productos[i].cantidadSolicitar) {
+        showToastError(
+          `El campo 'Cantidad a Solicitar' es obligatorio en la fila ${i + 1}.`
+        );
+        return;
+      }
+    }
+  
+    // Si todas las validaciones pasaron, enviar los datos
     try {
       const response = await api.post("/pedido", formData, {
         headers: {
           "Content-Type": "application/json",
         },
       });
-      
+  
       if (response.status === 201) {
         toast.success("Pedido creado con éxito.");
-
+  
+        // Limpiar el formulario después de crear el pedido
         setFormData({
           codigoFicha: "",
           area: "",
@@ -162,6 +211,7 @@ const PedidosIntructores = () => {
       showToastError("Error en la comunicación con el servidor.");
     }
   };
+  
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-grisClaro">
@@ -431,6 +481,11 @@ const PedidosIntructores = () => {
                           value={formData.correo}
                           onChange={handleInputChange}
                         />
+                        {formErrors.correo && (
+                          <div className="text-red-400 text-xs mt-1 px-2">
+                            {formErrors.correo}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

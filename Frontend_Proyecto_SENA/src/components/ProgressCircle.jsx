@@ -4,10 +4,10 @@ import { green, grey, orange, red } from "@mui/material/colors";
 import { api } from "../api/token";
 
 const ProgressCircle = ({ size = "100" }) => {
-  const [percentages, setPercentages] = useState({
-    bueno: 0,
-    regular: 0,
-    malo: 0,
+  const [data, setData] = useState({
+    bueno: { count: 0, percentage: 0 },
+    regular: { count: 0, percentage: 0 },
+    malo: { count: 0, percentage: 0 },
   });
 
   useEffect(() => {
@@ -15,20 +15,30 @@ const ProgressCircle = ({ size = "100" }) => {
       try {
         const response = await api.get("/herramienta");
         const totalHerramientas = response.data.length;
+
         const herramientasBuenas = response.data.filter(
-          (herramienta) => herramienta.condicion === "Bueno"
+          (herramienta) => herramienta.condicion === "BUENO"
         ).length;
         const herramientasRegulares = response.data.filter(
-          (herramienta) => herramienta.condicion === "Regular"
+          (herramienta) => herramienta.condicion === "REGULAR"
         ).length;
         const herramientasMalas = response.data.filter(
-          (herramienta) => herramienta.condicion === "Malo"
+          (herramienta) => herramienta.condicion === "MALO"
         ).length;
 
-        setPercentages({
-          bueno: (herramientasBuenas / totalHerramientas) * 100,
-          regular: (herramientasRegulares / totalHerramientas) * 100,
-          malo: (herramientasMalas / totalHerramientas) * 100,
+        setData({
+          bueno: {
+            count: herramientasBuenas,
+            percentage: (herramientasBuenas / totalHerramientas) * 100,
+          },
+          regular: {
+            count: herramientasRegulares,
+            percentage: (herramientasRegulares / totalHerramientas) * 100,
+          },
+          malo: {
+            count: herramientasMalas,
+            percentage: (herramientasMalas / totalHerramientas) * 100,
+          },
         });
       } catch (error) {
         console.error("Error al obtener las herramientas", error);
@@ -38,9 +48,9 @@ const ProgressCircle = ({ size = "100" }) => {
     fetchHerramientas();
   }, []);
 
-  const angleBueno = (percentages.bueno / 100) * 360;
-  const angleRegular = (percentages.regular / 100) * 360;
-  const angleMalo = (percentages.malo / 100) * 360;
+  const angleBueno = (data.bueno.percentage / 100) * 360;
+  const angleRegular = (data.regular.percentage / 100) * 360;
+  const angleMalo = (data.malo.percentage / 100) * 360;
 
   return (
     <Box display="flex" alignItems="center">
@@ -67,7 +77,7 @@ const ProgressCircle = ({ size = "100" }) => {
             }}
           />
           <Typography variant="body2" sx={{ fontSize: "12px" }}>
-            Bueno
+            Bueno: {data.bueno.count} herramientas ({data.bueno.percentage.toFixed(2)}%)
           </Typography>
         </Box>
         <Box display="flex" alignItems="center" mb={1}>
@@ -81,7 +91,7 @@ const ProgressCircle = ({ size = "100" }) => {
             }}
           />
           <Typography variant="body2" sx={{ fontSize: "12px" }}>
-            Regular
+            Regular: {data.regular.count} herramientas ({data.regular.percentage.toFixed(2)}%)
           </Typography>
         </Box>
         <Box display="flex" alignItems="center">
@@ -95,7 +105,7 @@ const ProgressCircle = ({ size = "100" }) => {
             }}
           />
           <Typography variant="body2" sx={{ fontSize: "12px" }}>
-            Malo
+            Malo: {data.malo.count} herramientas ({data.malo.percentage.toFixed(2)}%)
           </Typography>
         </Box>
       </Box>

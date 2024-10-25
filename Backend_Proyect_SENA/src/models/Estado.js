@@ -42,6 +42,7 @@ const datosEstados = [
   { estadoName: "PENDIENTE" },
   { estadoName: "EN PROCESO" },
   { estadoName: "ENTREGADO" },
+  { estadoName: "DEVUELTO" },
 
 ];
 

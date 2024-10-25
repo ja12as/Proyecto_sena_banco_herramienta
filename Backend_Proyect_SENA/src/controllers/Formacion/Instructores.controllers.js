@@ -3,6 +3,7 @@ import Usuario from "../../models/Usuario.js";
 import { Op } from "sequelize";
 import Instructores from "../../models/Instructores.js";
 import { createNotification } from "../../helpers/Notificacion.helpers.js";
+import Historial from "../../models/Historial.js";
 
 export const crearInstructor = async (req, res) => {
   try {
@@ -31,14 +32,25 @@ export const crearInstructor = async (req, res) => {
         .status(400)
         .json({ message: "El estado especificado no existe" });
     }
+    const estadoNombre = consultaEstado.estadoName; 
 
     const nuevoInstructor = { nombre, correo, celular, EstadoId, UsuarioId};
-
     const instructorCreado = await Instructores.create(nuevoInstructor);
+
     const mensajeNotificacion = `El usuario ${usuarioNombre} agregó un nuevo instructor (${instructorCreado.nombre}) el ${new Date().toLocaleDateString()}.`;
     await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
 
+    const descripcionHistorial = `El usuario ${usuarioNombre} creó un instructor con los siguientes datos: 
+    Nombre: ${instructorCreado.nombre}, 
+    Correo: ${instructorCreado.correo}, 
+    Celular: ${instructorCreado.celular}, 
+    Estado: ${estadoNombre}.`;
 
+  await Historial.create({
+    tipoAccion: "CREAR",
+    descripcion: descripcionHistorial,
+    UsuarioId: UsuarioId
+  });
 
     res.status(201).json(instructorCreado);
   } catch (error) {
@@ -46,6 +58,7 @@ export const crearInstructor = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 export const getAllInstructores = async (req, res) => {
   try {
     let instructores = await Instructores.findAll({
@@ -60,6 +73,7 @@ export const getAllInstructores = async (req, res) => {
           attributes: ["nombre"],
         },
       ],
+      order: [["createdAt", "DESC"]],
     });
 
     res.status(200).json(instructores);
@@ -94,6 +108,16 @@ export const actualizarInstructor = async (req, res) => {
     if (!instructor) {
       return res.status(404).json({ message: "No se encontró el instructor" });
     }
+
+    const oldValues = {
+      nombre: instructor.nombre,
+      correo: instructor.correo,
+      celular: instructor.celular,
+      EstadoId: instructor.EstadoId
+    };
+    const oldEstado = await Estado.findByPk(oldValues.EstadoId);
+    let oldEstadoName = oldEstado ? oldEstado.estadoName : "N/A";
+
     if (correo) {
       const consultaCorreo = await Instructores.findOne({
         where: { correo, id: { [Op.ne]: id } },
@@ -116,13 +140,15 @@ export const actualizarInstructor = async (req, res) => {
       }
     }
 
+    let newEstadoName = oldEstadoName; // Por defecto es el mismo
     if (EstadoId) {
-      const consultaEstado = await Estado.findByPk(EstadoId);
-      if (!consultaEstado) {
+      const consultaestado = await Estado.findByPk(EstadoId);
+      if (!consultaestado) {
         return res
           .status(400)
           .json({ message: "El estado especificado no existe" });
       }
+      newEstadoName = consultaestado.estadoName; // Actualizar con el nuevo nombre
     }
 
     if (nombre) instructor.nombre = nombre;
@@ -135,6 +161,31 @@ export const actualizarInstructor = async (req, res) => {
     const mensajeNotificacion = `El usuario ${usuarioNombre} edito el instructor (${instructor.nombre}) el ${new Date().toLocaleDateString()}.`;
     await createNotification(UsuarioId, 'UPDATE', mensajeNotificacion);
 
+
+    // Crear descripción detallada de los cambios
+    let cambiosRealizados = [];
+    
+    if (oldValues.nombre !== instructor.nombre) {
+      cambiosRealizados.push(`Nombre: de "${oldValues.nombre}" a "${instructor.nombre}"`);
+    }
+    if (oldValues.correo !== instructor.correo) {
+      cambiosRealizados.push(`Correo: de "${oldValues.correo}" a "${instructor.correo}"`);
+    }
+    if (oldValues.celular !== instructor.celular) {
+      cambiosRealizados.push(`Celular: de "${oldValues.celular}" a "${instructor.celular}"`);
+    }
+    if (oldValues.EstadoId !== instructor.EstadoId) {
+      cambiosRealizados.push(`Estado: de "${oldEstadoName}" a "${newEstadoName}"`);
+    }
+    const descripcionHistorial = `El usuario ${usuarioNombre} actualizó el instructor ${instructor.nombre} con los siguientes cambios: ${cambiosRealizados.join(', ')}`;
+
+    // Registrar en el historial
+    await Historial.create({
+      tipoAccion: "ACTUALIZAR",
+      descripcion: descripcionHistorial,
+      UsuarioId: UsuarioId
+    });
+    
     res.status(200).json(instructor);
   } catch (error) {
     console.error("Error al actualizar el instructor", error);

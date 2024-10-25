@@ -19,13 +19,13 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-  
+
     if (token) {
       api
         .get("/perfil", { headers: { Authorization: `Bearer ${token}` } })
         .then((response) => {
           const perfil = response.data.perfil;
-  
+
           return api
             .get(`/usuarios/${perfil.id}`, {
               headers: { Authorization: `Bearer ${token}` },
@@ -34,10 +34,10 @@ export const AuthProvider = ({ children }) => {
               const usuarioData = usuarioResponse.data;
               setUser({
                 ...perfil,
-                ...usuarioData, 
+                ...usuarioData,
                 RolId: perfil.RolId,
               });
-              setIsAuthenticated(true); 
+              setIsAuthenticated(true);
             })
             .catch((usuarioError) => {
               console.error("Error fetching usuario:", usuarioError);
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
         .catch((error) => {
           console.error("Error fetching profile or invalid token:", error);
           localStorage.removeItem("token");
-          setIsAuthenticated(false); 
+          setIsAuthenticated(false);
         })
         .finally(() => {
           setLoading(false);
@@ -67,18 +67,18 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post("/login", { Documento, password });
       const { token } = response.data;
       localStorage.setItem("token", token);
-  
+
       const perfilResponse = await api.get("/perfil", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const perfil = perfilResponse.data.perfil;
-  
+
       try {
         const usuarioResponse = await api.get(`/usuarios/${perfil.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const usuarioData = usuarioResponse.data;
-  
+
         setUser({
           ...perfil,
           ...usuarioData,
@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }) => {
           RolId: perfil.RolId,
         });
       }
-  
+
       setIsAuthenticated(true);
     } catch (error) {
       console.error("Login failed:", error.response?.data || error.message);

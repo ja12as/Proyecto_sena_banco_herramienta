@@ -25,7 +25,7 @@ const Rol = conexion.define(
   },
   {
     tableName: "Roles",
-    timestamps: false,
+    timestamps: true,
     indexes: [
       {
         unique: true,

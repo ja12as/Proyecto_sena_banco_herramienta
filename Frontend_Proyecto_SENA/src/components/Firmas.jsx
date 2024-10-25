@@ -16,13 +16,15 @@ const Firmas = ({ accordionStates, toggleAccordion }) => {
         <div className="flex flex-col rounded-lg w-full3">
           <div className="flex flex-col">
             <div>
-                <label className="mb-2 font-bold text-xs">Firma de quien hace el pedido:*</label>
-                <input
+              <label className="mb-2 font-bold text-xs">
+                Firma de quien hace el pedido:*
+              </label>
+              <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
                 className="font-inter text-xs ml-2 mb-4"
-                />
+              />
             </div>
 
             {firmaImagen && (

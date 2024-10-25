@@ -1,7 +1,16 @@
 import React from "react";
 import Sidebar from "../components/Sidebar";
 import Home from "../components/Home";
-import { FaBeer, FaWeight, FaRuler, FaTemperatureHigh, FaClock, FaBolt, FaTachometerAlt, FaLayerGroup } from "react-icons/fa";
+import {
+  FaBeer,
+  FaWeight,
+  FaRuler,
+  FaTemperatureHigh,
+  FaClock,
+  FaBolt,
+  FaTachometerAlt,
+  FaLayerGroup,
+} from "react-icons/fa";
 
 const UnidadMedida = () => {
   const [sidebarToggle, setSidebarToggle] = React.useState(false);
@@ -9,7 +18,11 @@ const UnidadMedida = () => {
   return (
     <div className="flex min-h-screen bg-fondo">
       <Sidebar sidebarToggle={sidebarToggle} />
-      <div className={`flex-1 px-4 md:px-8 lg:px-32 ${sidebarToggle ? "ml-custom" : ""}`}>
+      <div
+        className={`flex-1 px-4 md:px-8 lg:px-32 ${
+          sidebarToggle ? "ml-custom" : ""
+        }`}
+      >
         <Home
           sidebarToggle={sidebarToggle}
           setSidebarToggle={setSidebarToggle}
@@ -38,29 +51,37 @@ const UnidadMedida = () => {
               <FaBeer className="text-3xl md:text-4xl text-sena mb-2" />
               <h3 className="text-lg md:text-xl font-semibold mb-2">Volumen</h3>
               <p className="text-sm md:text-base">
-                El volumen es la medida del espacio que ocupa un objeto o sustancia. Se expresa 
-                en unidades como litros (L), mililitros (ml) y metros cúbicos (m³).
+                El volumen es la medida del espacio que ocupa un objeto o
+                sustancia. Se expresa en unidades como litros (L), mililitros
+                (ml) y metros cúbicos (m³).
               </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-md transform transition-transform duration-300 hover:scale-105">
               <FaWeight className="text-3xl md:text-4xl text-sena mb-2" />
               <h3 className="text-lg md:text-xl font-semibold mb-2">Peso</h3>
               <p className="text-sm md:text-base">
-                El peso es la fuerza gravitacional sobre un objeto y se mide en kilogramos (kg), gramos (g) y toneladas (t).
+                El peso es la fuerza gravitacional sobre un objeto y se mide en
+                kilogramos (kg), gramos (g) y toneladas (t).
               </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-md transform transition-transform duration-300 hover:scale-105">
               <FaRuler className="text-3xl md:text-4xl text-sena mb-2" />
-              <h3 className="text-lg md:text-xl font-semibold mb-2">Longitud</h3>
+              <h3 className="text-lg md:text-xl font-semibold mb-2">
+                Longitud
+              </h3>
               <p className="text-sm md:text-base">
-                La longitud mide la distancia entre dos puntos y se expresa en m, cm, mm, in, ft, yd y km.
+                La longitud mide la distancia entre dos puntos y se expresa en
+                m, cm, mm, in, ft, yd y km.
               </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-md transform transition-transform duration-300 hover:scale-105">
               <FaTemperatureHigh className="text-3xl md:text-4xl text-sena mb-2" />
-              <h3 className="text-lg md:text-xl font-semibold mb-2">Temperatura</h3>
+              <h3 className="text-lg md:text-xl font-semibold mb-2">
+                Temperatura
+              </h3>
               <p className="text-sm md:text-base">
-                La temperatura mide el calor o frío y se expresa en grados Celsius (°C), Fahrenheit (°F) y Kelvin (K).
+                La temperatura mide el calor o frío y se expresa en grados
+                Celsius (°C), Fahrenheit (°F) y Kelvin (K).
               </p>
             </div>
           </div>
@@ -70,29 +91,33 @@ const UnidadMedida = () => {
               <FaClock className="text-3xl md:text-4xl text-sena mb-2" />
               <h3 className="text-lg md:text-xl font-semibold mb-2">Tiempo</h3>
               <p className="text-sm md:text-base">
-                El tiempo mide la duración entre eventos y se expresa en segundos (s), minutos (min), horas (h), días (d), 
-                semanas (wk), meses (mo) y años (yr).
+                El tiempo mide la duración entre eventos y se expresa en
+                segundos (s), minutos (min), horas (h), días (d), semanas (wk),
+                meses (mo) y años (yr).
               </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-md transform transition-transform duration-300 hover:scale-105">
               <FaBolt className="text-3xl md:text-4xl text-sena mb-2" />
               <h3 className="text-lg md:text-xl font-semibold mb-2">Energía</h3>
               <p className="text-sm md:text-base">
-                La energía mide la capacidad de realizar trabajo y se expresa en julios (J), calorías (cal) y kilovatio-hora (kWh).
+                La energía mide la capacidad de realizar trabajo y se expresa en
+                julios (J), calorías (cal) y kilovatio-hora (kWh).
               </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-md transform transition-transform duration-300 hover:scale-105">
               <FaTachometerAlt className="text-3xl md:text-4xl text-sena mb-2" />
               <h3 className="text-lg md:text-xl font-semibold mb-2">Presión</h3>
               <p className="text-sm md:text-base">
-                La presión mide la fuerza por unidad de área y se expresa en pascales (Pa), bares (bar) y libras por pulgada cuadrada (psi).
+                La presión mide la fuerza por unidad de área y se expresa en
+                pascales (Pa), bares (bar) y libras por pulgada cuadrada (psi).
               </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-md transform transition-transform duration-300 hover:scale-105">
               <FaLayerGroup className="text-3xl md:text-4xl text-sena mb-2" />
               <h3 className="text-lg md:text-xl font-semibold mb-2">Área</h3>
               <p className="text-sm md:text-base">
-                El área mide la extensión de una superficie en dos dimensiones y se expresa en m², cm², ha y ac.
+                El área mide la extensión de una superficie en dos dimensiones y
+                se expresa en m², cm², ha y ac.
               </p>
             </div>
           </div>
@@ -115,7 +140,9 @@ const UnidadMedida = () => {
               <tbody>
                 {/* Sección de Volumen */}
                 <tr>
-                  <td className="bg-sena text-white" rowSpan="6">Volumen</td>
+                  <td className="bg-sena text-white" rowSpan="6">
+                    Volumen
+                  </td>
                   <td>L</td>
                   <td>Litro</td>
                   <td>1 L = 1,000 ml = 1,000 cm³ = 0.2642 gal</td>
@@ -151,7 +178,9 @@ const UnidadMedida = () => {
 
                 {/* Sección de Peso */}
                 <tr>
-                  <td className="bg-sena text-white" rowSpan="6">Peso</td>
+                  <td className="bg-sena text-white" rowSpan="6">
+                    Peso
+                  </td>
                   <td>kg</td>
                   <td>Kilogramo</td>
                   <td>1 kg = 1,000 g = 0.001 t</td>
@@ -187,7 +216,9 @@ const UnidadMedida = () => {
 
                 {/* Sección de Longitud */}
                 <tr>
-                  <td className="bg-sena text-white" rowSpan="7">Longitud</td>
+                  <td className="bg-sena text-white" rowSpan="7">
+                    Longitud
+                  </td>
                   <td>m</td>
                   <td>Metro</td>
                   <td>1 m = 100 cm = 1,000 mm = 39.37 in</td>
@@ -228,7 +259,9 @@ const UnidadMedida = () => {
 
                 {/* Sección de Temperatura */}
                 <tr>
-                  <td className="bg-sena text-white" rowSpan="3">Temperatura</td>
+                  <td className="bg-sena text-white" rowSpan="3">
+                    Temperatura
+                  </td>
                   <td>°C</td>
                   <td>Grados Celsius</td>
                   <td>°C = (°F - 32) / 1.8 = K - 273.15</td>
@@ -249,7 +282,9 @@ const UnidadMedida = () => {
 
                 {/* Sección de Tiempo */}
                 <tr>
-                  <td className="bg-sena text-white" rowSpan="7">Tiempo</td>
+                  <td className="bg-sena text-white" rowSpan="7">
+                    Tiempo
+                  </td>
                   <td>s</td>
                   <td>Segundo</td>
                   <td>1 s = 1 s</td>
@@ -290,7 +325,9 @@ const UnidadMedida = () => {
 
                 {/* Sección de Energía */}
                 <tr>
-                  <td className="bg-sena text-white" rowSpan="3">Energía</td>
+                  <td className="bg-sena text-white" rowSpan="3">
+                    Energía
+                  </td>
                   <td>J</td>
                   <td>Joule</td>
                   <td>1 J = 0.239 cal</td>
@@ -311,7 +348,9 @@ const UnidadMedida = () => {
 
                 {/* Sección de Presión */}
                 <tr>
-                  <td className="bg-sena text-white" rowSpan="3">Presión</td>
+                  <td className="bg-sena text-white" rowSpan="3">
+                    Presión
+                  </td>
                   <td>Pa</td>
                   <td>Pascal</td>
                   <td>1 Pa = 1 N/m²</td>
@@ -332,7 +371,9 @@ const UnidadMedida = () => {
 
                 {/* Sección de Área */}
                 <tr>
-                  <td className="bg-sena text-white" rowSpan="3">Área</td>
+                  <td className="bg-sena text-white" rowSpan="3">
+                    Área
+                  </td>
                   <td>m²</td>
                   <td>Metro cuadrado</td>
                   <td>1 m² = 10,000 cm²</td>

@@ -1,21 +1,26 @@
 import React, { useState } from "react";
 import { api } from "../api/token";
-import { toast } from "react-toastify"; // Importar toast
+import { toast } from "react-toastify";
 
-
-const TablaHerramientas = ({ accordionStates, handleHerramientaChange, herramientas }) => {
+const TablaHerramientas = ({
+  accordionStates,
+  handleHerramientaChange,
+  herramientas,
+}) => {
   const [sugerenciasherramientas, setSugerenciasherramientas] = useState({});
 
   const handleInputChange = (index, event) => {
     const { name, value } = event.target;
+    const upperCaseValue = value.toUpperCase(); // Convertir a mayúsculas
     const updatedHerramienta = [...herramientas];
-    updatedHerramienta[index][name] = value; // Actualizar el producto específico
-    handleHerramientaChange(updatedHerramienta); // Pasar los herramientas actualizados al padre
-
+    updatedHerramienta[index][name] = upperCaseValue; // Usar valor en mayúsculas
+    handleHerramientaChange(updatedHerramienta);
+  
     if (name === "nombre") {
-      buscarSugerenciasHerramienta(index, value);
+      buscarSugerenciasHerramienta(index, upperCaseValue); // Pasar valor en mayúsculas a la búsqueda
     }
   };
+  ;
 
   const addRow = () => {
     const newHerramienta = {
@@ -38,19 +43,20 @@ const TablaHerramientas = ({ accordionStates, handleHerramientaChange, herramien
     if (query.length > 2) {
       try {
         const response = await api.get(`/herramienta/busqueda?query=${query}`);
-  
+
         if (Array.isArray(response.data)) {
           const herramientasConUnidad = response.data.map((producto) => ({
             ...producto,
           }));
-  
-          // Verificar si hay alguna herramienta en uso (EstadoId: 4)
-          const herramientaEnUso = herramientasConUnidad.find((herramienta) => herramienta.EstadoId === 4);
+
+          const herramientaEnUso = herramientasConUnidad.find(
+            (herramienta) => herramienta.EstadoId === 4
+          );
           if (herramientaEnUso) {
-            // Mostrar un error y no añadir la herramienta en estado 4 a las sugerencias
-            showToastError(`La herramienta ${herramientaEnUso.nombre} no se encuentra disponible porque está prestada.`);
+            showToastError(
+              `La herramienta ${herramientaEnUso.nombre} no se encuentra disponible porque está prestada.`
+            );
           } else {
-            // Si no hay herramientas en uso, actualizar las sugerencias
             setSugerenciasherramientas((prev) => ({
               ...prev,
               [index]: herramientasConUnidad,
@@ -77,8 +83,7 @@ const TablaHerramientas = ({ accordionStates, handleHerramientaChange, herramien
       }));
     }
   };
-  
-  
+
   const showToastError = (message) => {
     toast.error(message, {
       position: "top-right",
@@ -90,14 +95,13 @@ const TablaHerramientas = ({ accordionStates, handleHerramientaChange, herramien
     });
   };
 
-
-  const handleSelectSuggestion = (index, HerramientumId, nombre, codigo) => { // Añadir 'codigo'
+  const handleSelectSuggestion = (index, HerramientumId, nombre, codigo) => {
     const newherramientas = [...herramientas];
-    newherramientas[index].HerramientumId = HerramientumId;  
-    newherramientas[index].nombre = nombre; 
-    newherramientas[index].codigo = codigo; // Asignar el 'codigo' de la herramienta seleccionada
+    newherramientas[index].HerramientumId = HerramientumId;
+    newherramientas[index].nombre = nombre;
+    newherramientas[index].codigo = codigo;
     handleHerramientaChange(newherramientas);
-  
+
     setSugerenciasherramientas((prev) => ({
       ...prev,
       [index]: [],
@@ -113,7 +117,9 @@ const TablaHerramientas = ({ accordionStates, handleHerramientaChange, herramien
               <thead>
                 <tr>
                   <th className="border border-black px-2">ITEM</th>
-                  <th className="border border-black px-2">NOMBRE DE LAS HERRAMIENTAS</th>
+                  <th className="border border-black px-2">
+                    NOMBRE DE LAS HERRAMIENTAS
+                  </th>
                   <th className="border border-black px-2">CÓDIGO</th>
                   <th className="border border-black px-2">OBSERVACIONES</th>
                   <th className="border border-black px-2">ACCIONES</th>
@@ -122,30 +128,41 @@ const TablaHerramientas = ({ accordionStates, handleHerramientaChange, herramien
               <tbody>
                 {herramientas.map((herramienta, index) => (
                   <tr key={index}>
-                    <td className="border border-black px-4 py-2">{index + 1}</td>
+                    <td className="border border-black px-4 py-2">
+                      {index + 1}
+                    </td>
                     <td className="border border-black px-4 py-2 relative">
-                      <input
-                        className="w-full px-2 py-1 rounded"
-                        name="nombre"
-                        value={herramienta.nombre || ""}
-                        onChange={(e) => handleInputChange(index, e)}
-                      />
-                      {Array.isArray(sugerenciasherramientas[index]) && sugerenciasherramientas[index].length > 0 && (
-                        <div className="absolute bg-white border border-gray-300 max-h-40  max-h-40 overflow-y-auto z-10">
-                          {sugerenciasherramientas[index].map((sugerencia, i) => (
-                            <div
-                              key={i}
-                              className="px-2 py-1 cursor-pointer hover:bg-gray-200"
-                              onClick={() => handleSelectSuggestion(index, sugerencia.id, sugerencia.nombre, sugerencia.codigo)} // Agregar 'codigo'
-                            >
-                              {sugerencia.nombre}
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                    <input
+                      className="w-full px-2 py-1 rounded"
+                      name="nombre"
+                      value={herramienta.nombre ? herramienta.nombre.toUpperCase() : ""} // Mostrar en mayúsculas
+                      onChange={(e) => handleInputChange(index, e)}
+                    />
+                      {Array.isArray(sugerenciasherramientas[index]) &&
+                        sugerenciasherramientas[index].length > 0 && (
+                          <div className="absolute bg-white border border-gray-300 max-h-40  max-h-40 overflow-y-auto z-10">
+                            {sugerenciasherramientas[index].map(
+                              (sugerencia, i) => (
+                                <div
+                                  key={i}
+                                  className="px-2 py-1 cursor-pointer hover:bg-gray-200"
+                                  onClick={() =>
+                                    handleSelectSuggestion(
+                                      index,
+                                      sugerencia.id,
+                                      sugerencia.nombre,
+                                      sugerencia.codigo
+                                    )
+                                  }
+                                >
+                                  {sugerencia.nombre}
+                                </div>
+                              )
+                            )}
+                          </div>
+                        )}
                     </td>
 
-                    {/* Campo código deshabilitado */}
                     <td className="border border-black px-4 py-2">
                       <input
                         type="text"
@@ -166,7 +183,10 @@ const TablaHerramientas = ({ accordionStates, handleHerramientaChange, herramien
                       />
                     </td>
                     <td className="border border-black px-4 py-2">
-                      <button className="btn-red" onClick={() => removeRow(index)}>
+                      <button
+                        className="btn-red"
+                        onClick={() => removeRow(index)}
+                      >
                         Eliminar
                       </button>
                     </td>

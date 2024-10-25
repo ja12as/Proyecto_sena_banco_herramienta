@@ -3,6 +3,7 @@ import Categoria from "../../models/Categoria.js";
 import Estado from "../../models/Estado.js";
 import { Op } from "sequelize";
 import { createNotification } from "../../helpers/Notificacion.helpers.js";
+import Historial from "../../models/Historial.js";
 
 export const crearSubcategoria = async (req, res) => {
   try {
@@ -38,15 +39,26 @@ export const crearSubcategoria = async (req, res) => {
         .json({ message: "El estado especificado no existe" });
     }
 
-    const categoriaNombre = consultacategoria.categoriaName;
+    const categoriaNombre = consultacategoria.categoriaName; 
+    const estadoNombre = consultaEstado.estadoName; 
 
     let data = req.body;
     const crearSubcategorias = await Subcategoria.create(data);
     const response = await crearSubcategorias.save();
 
-    const mensajeNotificacion = `El usuario ${usuarioNombre} agregó una nueva subcategoria  (${response.subcategoriaName}, de la categoria: ${categoriaNombre}) el ${new Date().toLocaleDateString()}.`;
+    const mensajeNotificacion = `El usuario ${usuarioNombre} agregó una nueva subcategoria (${response.subcategoriaName}, de la categoria: ${categoriaNombre}) el ${new Date().toLocaleDateString()}.`;
     await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
 
+    const descripcionHistorial = `El usuario ${usuarioNombre} creó una subcategoria con los siguientes datos: 
+    Nombre: ${response.subcategoriaName}, 
+    Categoria: ${categoriaNombre}, 
+    Estado: ${estadoNombre}.`; 
+
+    await Historial.create({
+      tipoAccion: "CREAR",
+      descripcion: descripcionHistorial,
+      UsuarioId: UsuarioId
+    });
 
     res.status(201).json(response);
   } catch (error) {
@@ -54,6 +66,8 @@ export const crearSubcategoria = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 export const getallSubcategoria = async (req, res) => {
   try {
@@ -112,6 +126,7 @@ export const getallSubcategoriaACTIVO = async (req, res) => {
           attributes: ["estadoName"],
         },
       ],
+      order: [["createdAt", "DESC"]],
     });
 
     res.status(200).json(subcategorias);
@@ -132,6 +147,21 @@ export const putSubcategoria = async (req, res) => {
       return res.status(400).json({ message: "Subcategoría no encontrada" });
     }
 
+    // Guardar los valores anteriores
+    const oldValues = {
+      subcategoriaName: consultaId.subcategoriaName,
+      CategoriaId: consultaId.CategoriaId,
+      EstadoId: consultaId.EstadoId
+    };
+
+    // Obtener los nombres antiguos de la categoría y el estado
+    const oldCategoria = await Categoria.findByPk(oldValues.CategoriaId);
+    const oldEstado = await Estado.findByPk(oldValues.EstadoId);
+
+    let oldCategoriaName = oldCategoria ? oldCategoria.categoriaName : "N/A";
+    let oldEstadoName = oldEstado ? oldEstado.estadoName : "N/A";
+
+    // Actualizar el nombre de la subcategoría si es necesario
     if (subcategoriaName) {
       const consultaNombre = await Subcategoria.findOne({
         where: {
@@ -150,6 +180,8 @@ export const putSubcategoria = async (req, res) => {
       consultaId.subcategoriaName = subcategoriaName;
     }
 
+    // Actualizar la categoría si es necesario
+    let newCategoriaName = oldCategoriaName; // Por defecto es el mismo
     if (CategoriaId) {
       const consultacategoria = await Categoria.findByPk(CategoriaId);
       if (!consultacategoria) {
@@ -158,8 +190,11 @@ export const putSubcategoria = async (req, res) => {
           .json({ message: "La categoría especificada no existe" });
       }
       consultaId.CategoriaId = CategoriaId;
+      newCategoriaName = consultacategoria.categoriaName; // Actualizar con el nuevo nombre
     }
 
+    // Actualizar el estado si es necesario
+    let newEstadoName = oldEstadoName; // Por defecto es el mismo
     if (EstadoId) {
       const consultaestado = await Estado.findByPk(EstadoId);
       if (!consultaestado) {
@@ -168,12 +203,35 @@ export const putSubcategoria = async (req, res) => {
           .json({ message: "El estado especificado no existe" });
       }
       consultaId.EstadoId = EstadoId;
+      newEstadoName = consultaestado.estadoName; // Actualizar con el nuevo nombre
     }
 
     await consultaId.save();
-    const mensajeNotificacion = `El usuario ${usuarioNombre} edito la  subcategoria  (${consultaId.consultaNombre}, de la categoria: ${consultaId.CategoriaId}) el ${new Date().toLocaleDateString()}.`;
+
+    const mensajeNotificacion = `El usuario ${usuarioNombre} editó la subcategoría (${consultaId.subcategoriaName}, de la categoría: ${newCategoriaName}) el ${new Date().toLocaleDateString()}.`;
     await createNotification(UsuarioId, 'UPDATE', mensajeNotificacion);
 
+    // Crear descripción detallada de los cambios
+    let cambiosRealizados = [];
+
+    if (oldValues.subcategoriaName !== consultaId.subcategoriaName) {
+      cambiosRealizados.push(`Nombre: de "${oldValues.subcategoriaName}" a "${consultaId.subcategoriaName}"`);
+    }
+    if (oldValues.CategoriaId !== consultaId.CategoriaId) {
+      cambiosRealizados.push(`Categoría: de "${oldCategoriaName}" a "${newCategoriaName}"`);
+    }
+    if (oldValues.EstadoId !== consultaId.EstadoId) {
+      cambiosRealizados.push(`Estado: de "${oldEstadoName}" a "${newEstadoName}"`);
+    }
+
+    const descripcionHistorial = `El usuario ${usuarioNombre} actualizó la subcategoría ${consultaId.subcategoriaName} con los siguientes cambios: ${cambiosRealizados.join(', ')}.`;
+
+    // Registrar en el historial
+    await Historial.create({
+      tipoAccion: "ACTUALIZAR",
+      descripcion: descripcionHistorial,
+      UsuarioId: UsuarioId
+    });
 
     res.status(200).json({
       message: "Subcategoría actualizada con éxito",

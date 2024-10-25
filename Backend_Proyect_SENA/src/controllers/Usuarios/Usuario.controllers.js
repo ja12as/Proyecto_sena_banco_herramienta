@@ -7,6 +7,7 @@ import Permiso from "../../models/Permiso.js";
 import Estado from "../../models/Estado.js";
 import DetallePermiso from "../../models/DetallePermiso.js";
 import { createNotification } from "../../helpers/Notificacion.helpers.js";
+import Historial from "../../models/Historial.js";
 
 config();
 
@@ -56,11 +57,26 @@ export const crearUsuario = async (req, res) => {
       password: hashedPassword,
     });
 
+    const rolNombre = consultaRol.rolName; 
+    const estadoNombre = consultarEstado.estadoName; 
+
     await crearUser.save();
 
     const mensajeNotificacion = `El usuario ${usuarioNombre} agregó un nuevo usuario (${crearUser.nombre}, documento: ${crearUser.Documento}) el ${new Date().toLocaleDateString()}.`;
     await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
 
+    const descripcionHistorial = `El usuario ${usuarioNombre} creó un usuario con los siguientes datos: 
+    Nombre: ${crearUser.nombre}, 
+    Correo: ${crearUser.correo}, 
+    Documento: ${crearUser.Documento}, 
+    Rol: ${rolNombre}, 
+    Estado: ${estadoNombre}.`;
+
+  await Historial.create({
+    tipoAccion: "CREAR",
+    descripcion: descripcionHistorial,
+    UsuarioId: UsuarioId
+  });
 
     if (permisos && permisos.length > 0) {
       const permisosValidos = await Permiso.findAll({
@@ -105,6 +121,7 @@ export const getAllusuario = async (req, res) => {
           attributes: ["estadoName"],
         },
       ],
+      order: [["createdAt", "DESC"]],
     });
     res.status(200).json(consultarusuario);
   } catch (error) {
@@ -159,6 +176,22 @@ export const Putusuario = async (req, res) => {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
+    const oldValues = {
+      nombre: consultarusuario.nombre,
+      correo: consultarusuario.correo,
+      Documento: consultarusuario.Documento,
+      RolId: consultarusuario.RolId,
+      EstadoId: consultarusuario.EstadoId
+    };
+
+    // Obtener los nombres antiguos del rol y estado
+    const oldRol = await Rol.findByPk(oldValues.RolId);
+    const oldEstado = await Estado.findByPk(oldValues.EstadoId);
+
+    let oldRolName = oldRol ? oldRol.rolName : "N/A";
+    let oldEstadoName = oldEstado ? oldEstado.estadoName : "N/A";
+
+    // Verificaciones de correo y documento duplicados
     if (req.body.correo) {
       const emailExists = await Usuario.findOne({
         where: {
@@ -183,6 +216,7 @@ export const Putusuario = async (req, res) => {
       }
     }
 
+    // Bloquear cambios en el rol o estado del admin principal
     if (
       consultarusuario.correo === DOCUMENTO_ADMIN &&
       (req.body.RolId || req.body.EstadoId)
@@ -199,7 +233,7 @@ export const Putusuario = async (req, res) => {
     }
 
     if (req.body.id === DOCUMENTO_ADMIN) {
-      delete req.body.id; 
+      delete req.body.id;
     }
 
     if (req.params.id === DOCUMENTO_ADMIN && req.body.RolId === 2) {
@@ -212,9 +246,46 @@ export const Putusuario = async (req, res) => {
       }
     }
 
+    // Actualizar el usuario
     await consultarusuario.update(req.body);
-    const mensajeNotificacion = `El usuario ${usuarioNombre} edito el usuario (${consultarusuario.nombre}, documento: ${consultarusuario.Documento}) el ${new Date().toLocaleDateString()}.`;
+
+    // Obtener los nuevos valores del rol y del estado
+    const newRol = await Rol.findByPk(consultarusuario.RolId);
+    const newEstado = await Estado.findByPk(consultarusuario.EstadoId);
+
+    let newRolName = newRol ? newRol.rolName : "N/A";
+    let newEstadoName = newEstado ? newEstado.estadoName : "N/A";
+
+    const mensajeNotificacion = `El usuario ${usuarioNombre} editó el usuario (${consultarusuario.nombre}, documento: ${consultarusuario.Documento}) el ${new Date().toLocaleDateString()}.`;
     await createNotification(UsuarioId, 'UPDATE', mensajeNotificacion);
+
+    // Crear descripción detallada de los cambios
+    let cambiosRealizados = [];
+    
+    if (oldValues.nombre !== consultarusuario.nombre) {
+      cambiosRealizados.push(`Nombre: de "${oldValues.nombre}" a "${consultarusuario.nombre}"`);
+    }
+    if (oldValues.correo !== consultarusuario.correo) {
+      cambiosRealizados.push(`Correo: de "${oldValues.correo}" a "${consultarusuario.correo}"`);
+    }
+    if (oldValues.Documento !== consultarusuario.Documento) {
+      cambiosRealizados.push(`Documento: de "${oldValues.Documento}" a "${consultarusuario.Documento}"`);
+    }
+    if (oldRolName !== newRolName) {
+      cambiosRealizados.push(`Rol: de "${oldRolName}" a "${newRolName}"`);
+    }
+    if (oldEstadoName !== newEstadoName) {
+      cambiosRealizados.push(`Estado: de "${oldEstadoName}" a "${newEstadoName}"`);
+    }
+
+    const descripcionHistorial = `El usuario ${usuarioNombre} actualizó el usuario ${consultarusuario.nombre} con los siguientes cambios: ${cambiosRealizados.join(', ')}`;
+
+    // Registrar en el historial
+    await Historial.create({
+      tipoAccion: "ACTUALIZAR",
+      descripcion: descripcionHistorial,
+      UsuarioId: UsuarioId
+    });
 
     if (permisos && permisos.length > 0) {
       const permisosAsignados = await DetallePermiso.findAll({

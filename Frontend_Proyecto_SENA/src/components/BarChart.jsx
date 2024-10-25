@@ -5,6 +5,7 @@ import { ResponsiveBar } from "@nivo/bar";
 
 const BarChart = () => {
   const [data, setData] = useState([]);
+  
 
   useEffect(() => {
     const fetchPedidosAndProductos = async () => {

@@ -47,7 +47,7 @@ const UnidadDeMedida = conexion.define(
             },
         },
     }, {
-        timestamps: false,
+        timestamps: true,
         tableName: 'UnidadesMedidas',
     }
 );

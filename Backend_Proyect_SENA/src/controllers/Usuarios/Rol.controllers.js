@@ -1,4 +1,5 @@
 import { createNotification } from "../../helpers/Notificacion.helpers.js";
+import Historial from "../../models/Historial.js";
 import Rol from "../../models/Rol.js";
 
 export const crearRol = async (req, res) => {
@@ -21,8 +22,16 @@ export const crearRol = async (req, res) => {
       ...req.body,
       rolName: rolNameUpperCase,
     });
+
     const mensajeNotificacion = `El usuario ${usuarioNombre} agregó un nuevo Rol (${crearRol.rolName}), el ${new Date().toLocaleDateString()}.`;
     await createNotification(UsuarioId, 'CREATE', mensajeNotificacion);
+
+       // Registrar en el historial
+      await Historial.create({
+        tipoAccion: "CREAR",
+        descripcion: `El usuario ${usuarioNombre} creó el rol (${crearRol.rolName})`,
+        UsuarioId: UsuarioId
+      });
 
     res.status(201).json(crearRol);
   } catch (error) {
@@ -34,6 +43,7 @@ export const getAllRol = async (req, res) => {
   try {
     let roles = await Rol.findAll({
       attributes: null,
+      order: [["createdAt", "DESC"]],
     });
 
     res.status(200).json(roles);
@@ -75,6 +85,12 @@ export const putRoles = async (req, res) => {
 
     const mensajeNotificacion = `El usuario ${usuarioNombre} edito el rol (${RolActualizado.rolName}), el ${new Date().toLocaleDateString()}.`;
     await createNotification(UsuarioId, 'UPDATE', mensajeNotificacion);
+
+    await Historial.create({
+      tipoAccion: "ACTUALIZAR",
+      descripcion: `El usuario ${usuarioNombre} actualizó el rol (${RolActualizado.rolName})`,
+      UsuarioId: UsuarioId
+    });
 
     res.status(200).json({
       message: "Rol actualizado correctamente",

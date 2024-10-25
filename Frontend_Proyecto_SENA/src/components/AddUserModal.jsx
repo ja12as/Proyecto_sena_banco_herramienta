@@ -3,7 +3,7 @@ import { api } from "../api/token";
 import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import { FormControlLabel, Checkbox } from "@mui/material";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 
 const AddUserModal = ({ isOpen, onClose }) => {
@@ -28,11 +28,18 @@ const AddUserModal = ({ isOpen, onClose }) => {
     if (isOpen) {
       setLoading(true);
       Promise.all([api.get("/Rol"), api.get("/Estado/1"), api.get("/Estado/2")])
-        .then(([rolesResponse, estado1Response, estado2Response, permisosResponse]) => {
-          setRoles(rolesResponse.data);
-          setEstados([estado1Response.data, estado2Response.data]);
-          setPermisos(permisosResponse.data);
-        })
+        .then(
+          ([
+            rolesResponse,
+            estado1Response,
+            estado2Response,
+            permisosResponse,
+          ]) => {
+            setRoles(rolesResponse.data);
+            setEstados([estado1Response.data, estado2Response.data]);
+            setPermisos(permisosResponse.data);
+          }
+        )
         .catch(() => {
           setLoading(false);
         });
@@ -44,13 +51,11 @@ const AddUserModal = ({ isOpen, onClose }) => {
       try {
         const response = await api.get("/permisos");
         setPermisos(response.data);
-      } catch (error) {
-      }
+      } catch (error) {}
     };
     fetchPermisos();
   }, []);
 
-  
   const validateInput = (name, value) => {
     let errorMessage = "";
     if (name === "nombre") {
@@ -97,15 +102,18 @@ const AddUserModal = ({ isOpen, onClose }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const errorMessage = validateInput(name, value);
+    // Convertir el nombre a mayúsculas si es el campo de nombre
+    const newValue = name === "nombre" ? value.toUpperCase() : value;
+    const errorMessage = validateInput(name, newValue);
+  
     setFormErrors((prevErrors) => ({
       ...prevErrors,
       [name]: errorMessage,
     }));
-
+  
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: newValue,
     }));
   };
 
@@ -134,10 +142,24 @@ const AddUserModal = ({ isOpen, onClose }) => {
 
   const handleCreate = async () => {
     const { nombre, correo, password, Documento, RolId, EstadoId } = formData;
+  
+    // Verifica si alguno de los campos obligatorios está vacío
+    const requiredFields = { nombre, Documento, correo, password, RolId, EstadoId };
+    const emptyFields = Object.keys(requiredFields).filter(
+      (field) => !requiredFields[field] || requiredFields[field].trim() === ""
+    );
+  
+    // Si hay campos vacíos, muestra un error
+    if (emptyFields.length > 0) {
+      showToastError("Todos los campos son obligatorios. Los campos vacíos son: " + emptyFields.join(", "));
+      return;
+    }
+  
+    // Validaciones individuales (por ejemplo, validación de formato)
     const nombreError = validateInput("nombre", nombre);
     const correoError = validateInput("correo", correo);
     const passwordError = validateInput("password", password);
-
+  
     if (nombreError || correoError || passwordError) {
       setFormErrors({
         nombre: nombreError,
@@ -147,18 +169,7 @@ const AddUserModal = ({ isOpen, onClose }) => {
       showToastError("Por favor, corrige los errores antes de agregar.");
       return;
     }
-    if (
-      !nombre ||
-      !Documento ||
-      !correo ||
-      !password ||
-      !RolId ||
-      !EstadoId ||
-      !selectedPermisos.length
-    ) {
-      showToastError("Todos los campos son obligatorios.");
-      return;
-    }
+  
     setLoading(true);
     try {
       const token = document.cookie.replace(
@@ -169,7 +180,7 @@ const AddUserModal = ({ isOpen, onClose }) => {
         "/usuarios",
         {
           ...formData,
-          permisos: selectedPermisos,
+          permisos: selectedPermisos.length ? selectedPermisos : [],
         },
         {
           headers: {
@@ -177,7 +188,7 @@ const AddUserModal = ({ isOpen, onClose }) => {
           },
         }
       );
-
+  
       if (response.status === 201) {
         toast.success("Usuario agregado exitosamente", {
           position: "top-right",
@@ -205,13 +216,13 @@ const AddUserModal = ({ isOpen, onClose }) => {
       setLoading(false);
     }
   };
+  
 
-  // Función para verificar permisos
   const hasPermission = (permissionName) => {
     return user.DetallePermisos.some(
       (permiso) => permiso.Permiso.nombrePermiso === permissionName
     );
-  };  
+  };
 
   return (
     <div
@@ -249,6 +260,7 @@ const AddUserModal = ({ isOpen, onClose }) => {
                           e.preventDefault();
                         }
                       }}
+                      style={{ textTransform: 'uppercase' }}
                     />
                     {formErrors.nombre && (
                       <div className="text-red-400 text-sm mt-1 px-2 min-w-[200px]">
@@ -361,73 +373,76 @@ const AddUserModal = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* {(hasPermission("Mostrar Permisos") || hasPermission("Asignar Permisos")) && ( */}
-                    <>
-                      <h6 className="font-bold text-center text-xl mb-2">Permisos</h6>
-              
-                      <div>
-                        <div className="text-center">
-                        {user.id === 1 ? (
-                          <FormControlLabel
-                            sx={{
-                              "& .MuiFormControlLabel-label": {
-                                fontSize: "0.775rem",
-                                fontWeight: "bold",
-                              },
-                            }}
-                            control={
-                              <Checkbox
-                                checked={isAllSelected}
-                                indeterminate={isIndeterminate}
-                                onChange={handleSelectAllChange}
-                              />
-                            }
-                            label="Seleccionar todos"
-                            />
-                          ) : (
-                            <p className="text-red-500 font-bold">
-                              Para asignar permisos, comunicarse con el administrador.
-                            </p>
-                          )}
-                        </div>
+                <>
+                  <h6 className="font-bold text-center text-xl mb-2">
+                    Permisos
+                  </h6>
 
-                        <div className="grid grid-cols-4 gap-1">
-                          {permisos.map((permiso) => (
-                            <FormControlLabel
-                              key={permiso.id}
-                              sx={{
-                                "& .MuiFormControlLabel-label": {
-                                  fontSize: "0.675rem",
-                                },
-                              }}
-                              control={
-                                <Checkbox
-                                  checked={selectedPermisos.includes(permiso.id)}
-                                  onChange={handleCheckboxChange(permiso.id)}
-                                  name={permiso.nombrePermiso}
-                                />
-                              }
-                              label={permiso.nombrePermiso}
+                  <div>
+                    <div className="text-center">
+                      {user.id === 1 ? (
+                        <FormControlLabel
+                          sx={{
+                            "& .MuiFormControlLabel-label": {
+                              fontSize: "0.775rem",
+                              fontWeight: "bold",
+                            },
+                          }}
+                          control={
+                            <Checkbox
+                              checked={isAllSelected}
+                              indeterminate={isIndeterminate}
+                              onChange={handleSelectAllChange}
                             />
-                          ))}
-                        </div>
-                      </div>
+                          }
+                          label="Seleccionar todos"
+                        />
+                      ) : (
+                        <p className="text-red-500 font-bold">
+                          Para asignar permisos, comunicarse con el
+                          administrador.
+                        </p>
+                      )}
+                    </div>
 
-                <div className="sm:w-full md:w-full flex flex-col justify-end">
-                  <div className="flex justify-center mt-4 mb-4 mx-2">
-                    <button className="btn-danger2 mx-2" onClick={onClose}>
-                      Cancelar
-                    </button>
-                    <button
-                      className="btn-primary2 mx-2"
-                      onClick={handleCreate}
-                    >
-                      Agregar
-                    </button>
+                    <div className="grid grid-cols-4 gap-1">
+                      {permisos.map((permiso) => (
+                        <FormControlLabel
+                          key={permiso.id}
+                          sx={{
+                            "& .MuiFormControlLabel-label": {
+                              fontSize: "0.675rem",
+                            },
+                          }}
+                          control={
+                            <Checkbox
+                              checked={selectedPermisos.includes(permiso.id)}
+                              onChange={handleCheckboxChange(permiso.id)}
+                              name={permiso.nombrePermiso}
+                            />
+                          }
+                          label={permiso.nombrePermiso}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
+
+                  <div className="sm:w-full md:w-full flex flex-col justify-end">
+                    <div className="flex justify-center mt-4 mb-4 mx-2">
+                      <button className="btn-danger2 mx-2" onClick={onClose}>
+                        Cancelar
+                      </button>
+                      <button
+                        className="btn-primary2 mx-2"
+                        onClick={handleCreate}
+                      >
+                        Agregar
+                      </button>
+                    </div>
+                  </div>
                 </>
                 {/* )} */}
-            </div>
+              </div>
             </div>
           </div>
         </div>
@@ -438,4 +453,3 @@ const AddUserModal = ({ isOpen, onClose }) => {
 };
 
 export default AddUserModal;
-

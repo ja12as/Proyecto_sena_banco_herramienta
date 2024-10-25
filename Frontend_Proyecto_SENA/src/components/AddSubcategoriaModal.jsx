@@ -38,14 +38,14 @@ const AddSubcategoriaModal = ({ isOpen, onClose }) => {
       try {
         const response = await api.get("/Estado");
         const filteredEstados = response.data.filter(
-          estado => estado.id === 1 || estado.id === 2
+          (estado) => estado.id === 1 || estado.id === 2
         );
         setEstados(filteredEstados);
       } catch (error) {
         showToastError("Error al cargar los estados");
       }
     };
-  
+
     fetchStates();
   }, []);
 

@@ -120,47 +120,54 @@ const Login = () => {
           });
           setTimeout(() => {
             if (role.toUpperCase() === "COORDINADOR") {
-              navigate("/homecoord"); 
+              navigate("/homecoord");
             } else {
-              navigate("/dashboard");  
+              navigate("/dashboard");
             }
           }, 2000);
         }
       } catch (error) {
-             // Verificar si es un error específico del estado o los permisos
-      const errorMessage = error.response?.data?.message || "Error al iniciar sesión";
 
-      if (errorMessage === "Estado no activo") {
-        toast.error("Su cuenta no está activa. Por favor, contacte al administrador.", {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      } else if (errorMessage === "El usuario no tiene permisos asignados") {
-        toast.error("No tiene permisos asignados. Contacte al administrador.", {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      } else {
-        toast.error("Credenciales inválidas", {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      }
+        const errorMessage =
+          error.response?.data?.message || "Error al iniciar sesión";
+
+        if (errorMessage === "Estado no activo") {
+          toast.error(
+            "Su cuenta no está activa. Por favor, contacte al administrador.",
+            {
+              position: "top-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            }
+          );
+        } else if (errorMessage === "El usuario no tiene permisos asignados") {
+          toast.error(
+            "No tiene permisos asignados. Contacte al administrador.",
+            {
+              position: "top-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            }
+          );
+        } else {
+          toast.error("Credenciales inválidas", {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+        }
       }
     }
   };
@@ -184,19 +191,13 @@ const Login = () => {
         errors.push("La contraseña debe tener máximo 20 caracteres");
       }
       if (!/[\W_]/.test(value)) {
-        errors.push(
-          "La contraseña debe tener un carácter especial"
-        );
+        errors.push("La contraseña debe tener un carácter especial");
       }
       if (!/[a-z]/.test(value)) {
-        errors.push(
-          "La contraseña debe tener una letra minúscula"
-        );
+        errors.push("La contraseña debe tener una letra minúscula");
       }
       if (!/[A-Z]/.test(value)) {
-        errors.push(
-          "La contraseña debe tener una letra mayúscula"
-        );
+        errors.push("La contraseña debe tener una letra mayúscula");
       }
       if (errors.length > 0) {
         setPasswordError(errors[0]);
@@ -207,7 +208,7 @@ const Login = () => {
   };
 
   const handleNavigate = () => {
-    navigate('/pedInstructores'); 
+    navigate("/pedInstructores");
   };
 
   return (
@@ -225,7 +226,10 @@ const Login = () => {
               Mobiliario
             </h1>
           </div>
-          <form onSubmit={handleLogin} className="space-y-2 md:space-y-4 text-left">
+          <form
+            onSubmit={handleLogin}
+            className="space-y-2 md:space-y-4 text-left"
+          >
             <div className="input w-full mb-1 relative">
               <label className="text-sm text-white block mb-1">
                 Identificación
@@ -281,10 +285,7 @@ const Login = () => {
               </div>
             </div>
             <div className="flex justify-center mt-2 md:mt-6">
-              <button
-                type="submit"
-                className="btn-primary"
-              >
+              <button type="submit" className="btn-primary">
                 Iniciar sesión
               </button>
             </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { api } from "../api/token";
 import { saveAs } from "file-saver";
 import { toast } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import Sidebar from "../components/Sidebar";
 import Home from "../components/Home";
 import MUIDataTable from "mui-datatables";
@@ -72,7 +72,7 @@ const Usuarios = () => {
     return user.DetallePermisos.some(
       (permiso) => permiso.Permiso.nombrePermiso === permissionName
     );
-  };  
+  };
 
   const handleCloseEditModal = (updatedUser) => {
     if (updatedUser) {
@@ -100,11 +100,13 @@ const Usuarios = () => {
       options: {
         customBodyRender: (value) => <div className="text-center">{value}</div>,
         customHeadRender: (columnMeta) => (
-          <th 
-            key={columnMeta.label}  
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+          <th
+            key={columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
-        )
+        ),
       },
     },
     {
@@ -113,9 +115,11 @@ const Usuarios = () => {
       options: {
         customBodyRender: (value) => <div className="text-center">{value}</div>,
         customHeadRender: (columnMeta) => (
-          <th 
-            key={columnMeta.label}  
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+          <th
+            key={columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
         ),
       },
@@ -126,9 +130,11 @@ const Usuarios = () => {
       options: {
         customBodyRender: (value) => <div className="text-center">{value}</div>,
         customHeadRender: (columnMeta) => (
-          <th 
-            key={columnMeta.label}  
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+          <th
+            key={columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
         ),
       },
@@ -139,9 +145,11 @@ const Usuarios = () => {
       options: {
         customBodyRender: (value) => <div className="text-center">{value}</div>,
         customHeadRender: (columnMeta) => (
-          <th 
-            key={columnMeta.label}  
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+          <th
+            key={columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
         ),
       },
@@ -152,9 +160,11 @@ const Usuarios = () => {
       options: {
         customBodyRender: (value) => <div className="text-center">{value}</div>,
         customHeadRender: (columnMeta) => (
-          <th 
-            key={columnMeta.label}  
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+          <th
+            key={columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
         ),
       },
@@ -164,9 +174,11 @@ const Usuarios = () => {
       label: "ESTADO",
       options: {
         customHeadRender: (columnMeta) => (
-          <th 
-            key={columnMeta.label}  
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
+          <th
+            key={columnMeta.label}
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
+            {columnMeta.label}
           </th>
         ),
         customBodyRender: (value) => (
@@ -179,34 +191,40 @@ const Usuarios = () => {
             {value}
           </div>
         ),
-        setCellHeaderProps: () => ({ style: { textAlign: 'center' } }),
+        setCellHeaderProps: () => ({ style: { textAlign: "center" } }),
       },
     },
-    ...(hasPermission("Modificar Usuario") ? [{
-      name: "edit",
-      label: "EDITAR",
-      options: {
-        filter: false,
-        customHeadRender: (columnMeta) => (
-          <th 
-            key={columnMeta.label} 
-            className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}
-          </th>
-        ),
-        customBodyRender: (value, tableMeta, updateValue) => (
-          <div className="flex items-center justify-center">
-            <IconButton
-              onClick={() => handleEditClick(tableMeta.rowIndex)}
-              color="primary"
-              aria-label="edit"
-            >
-              <EditIcon />
-            </IconButton>
-          </div>
-        ),
-        setCellHeaderProps: () => ({ style: { textAlign: 'center' } }),
-      },
-    }] : []),
+    ...(hasPermission("Modificar Usuario")
+      ? [
+          {
+            name: "edit",
+            label: "EDITAR",
+            options: {
+              filter: false,
+              customHeadRender: (columnMeta) => (
+                <th
+                  key={columnMeta.label}
+                  className="text-center bg-white text-black uppercase text-xs font-bold"
+                >
+                  {columnMeta.label}
+                </th>
+              ),
+              customBodyRender: (value, tableMeta, updateValue) => (
+                <div className="flex items-center justify-center">
+                  <IconButton
+                    onClick={() => handleEditClick(tableMeta.rowIndex)}
+                    color="primary"
+                    aria-label="edit"
+                  >
+                    <EditIcon />
+                  </IconButton>
+                </div>
+              ),
+              setCellHeaderProps: () => ({ style: { textAlign: "center" } }),
+            },
+          },
+        ]
+      : []),
   ];
 
   const handleCustomExport = (rows) => {
@@ -226,32 +244,29 @@ const Usuarios = () => {
     saveAs(data, "Usuarios.xlsx");
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF  = () => {
     const doc = new jsPDF();
     const tableColumn = ["Nombre", "Correo"];
     const tableRows = [];
-  
+
     data.forEach((user) => {
-      const userData = [
-        user.nombre || "",
-        user.correo || "",
-      ];
+      const userData = [user.nombre || "", user.correo || ""];
       tableRows.push(userData);
     });
-  
+
     doc.autoTable({
       head: [tableColumn],
       body: tableRows,
       startY: 20,
-      theme: 'striped',
+      theme: "striped",
       styles: { fontSize: 10 },
-      headStyles: { fillColor: [0, 57, 107] }, 
-      margin: { top: 10 }
+      headStyles: { fillColor: [0, 57, 107] },
+      margin: { top: 10 },
     });
-  
-    doc.text("Usuarios", 14, 15); 
+
+    doc.text("Usuarios", 14, 15);
     doc.save("Usuarios.pdf");
-  };  
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -265,7 +280,9 @@ const Usuarios = () => {
           sidebarToggle={sidebarToggle}
           setSidebarToggle={setSidebarToggle}
         />
-        <div className="flex justify-end mt-2">
+
+        {/* Contenedor para los botones */}
+        <div className="flex justify-end mt-6 fixed top-16 right-6 z-10">
           <button className="btn-black mr-2" onClick={handleExportPDF}>
             Exportar PDF
           </button>
@@ -275,13 +292,17 @@ const Usuarios = () => {
             </button>
           )}
         </div>
-        <div className="flex-grow flex items-center justify-center">
+
+        {/* Contenedor de la tabla */}
+        <div className="flex-grow flex items-center justify-center mt-16">
+          {" "}
+          {/* Añadir mt-16 para espacio */}
           <div className="max-w-6xl mx-auto">
             {loading ? (
               <div className="text-center">Cargando usuarios...</div>
             ) : (
               <MUIDataTable
-                title={<span className="custom-title">USUARIOS</span>} 
+                title={<span className="custom-title">USUARIOS</span>}
                 data={data}
                 columns={columns}
                 options={{

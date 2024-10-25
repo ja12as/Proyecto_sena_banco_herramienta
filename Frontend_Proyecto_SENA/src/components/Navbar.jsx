@@ -36,7 +36,7 @@ const Navbar  = ({ sidebarToggle, setSidebarToggle }) => {
     fetchNotifications();
     const interval = setInterval(() => {
       fetchNotifications();
-    }, 30000); // Cada 30 segundos
+    }, 300000); // Cada 30 segundos
   
     return () => clearInterval(interval);
   }, []);

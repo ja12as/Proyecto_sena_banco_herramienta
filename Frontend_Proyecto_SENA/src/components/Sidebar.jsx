@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaHome, FaUsers, FaRegFileExcel, FaUnity, FaClipboardList } from "react-icons/fa";
+import { FaHome,FaUsers,FaRegFileExcel,FaUnity,FaClipboardList} from "react-icons/fa";
 import { FaUserLarge } from "react-icons/fa6";
 import { PiChalkboardTeacher } from "react-icons/pi";
 import { RiTokenSwapLine } from "react-icons/ri";
@@ -13,19 +13,20 @@ import { RiAdminLine } from "react-icons/ri";
 import { FaArrowsDownToPeople } from "react-icons/fa6";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import fondo from "/logoSena.png";
 
 const Sidebar = ({ sidebarToggle }) => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState({
+    autorizar: false,
     usuarios: false,
     formacion: false,
     fichas: false,
     categorias: false,
     general: false,
     subdireccion: false,
-  });  
+  });
 
   const { user } = useAuth();
 
@@ -38,13 +39,13 @@ const Sidebar = ({ sidebarToggle }) => {
       ...prevExpanded,
       [panel]: !prevExpanded[panel],
     }));
-  };  
+  };
 
   const hasPermission = (permissionName) => {
     return user.DetallePermisos.some(
       (permiso) => permiso.Permiso.nombrePermiso === permissionName
     );
-  };  
+  };
 
   return (
     <motion.div
@@ -72,7 +73,8 @@ const Sidebar = ({ sidebarToggle }) => {
             Dashboard
           </a>
         </li>
-
+        
+        
         {/* Usuarios */}
         <li className="mb-2">
           <div
@@ -90,38 +92,38 @@ const Sidebar = ({ sidebarToggle }) => {
               {hasPermission("Vista Usuario") && (
                 <li className="py-1 hover:bg-gray-700 rounded mx-4">
                   <a href="/Usuarios" className="px-3 flex items-center">
-                  <FaUserLarge className="inline-block w-4 h-4 mr-2 -mt-1"></FaUserLarge>
-                  Usuarios
+                    <FaUserLarge className="inline-block w-4 h-4 mr-2 -mt-1"></FaUserLarge>
+                    Usuarios
                   </a>
                 </li>
               )}
               <li className="py-1 hover:bg-gray-700 rounded mx-4">
                 <a href="/roles" className="px-3 flex items-center">
-                <FaUsers className="inline-block w-4 h-4 mr-2 -mt-1"></FaUsers>
-                Roles
+                  <FaUsers className="inline-block w-4 h-4 mr-2 -mt-1"></FaUsers>
+                  Roles
                 </a>
               </li>
             </ul>
           )}
         </li>
 
-
         {/* Formación */}
-        {(hasPermission("Vista Fichas") || (hasPermission("Vista Instructores"))) && (
-        <li className="mb-2">
-          <div
-            className="flex items-center justify-between px-3 py-2 rounded hover:shadow hover:bg-gray-700 cursor-pointer"
-            onClick={() => handleToggle("formacion")}
-          >
-            <div className="flex items-center">
-              <SiGoogleclassroom className="inline-block w-6 h-6 mr-2 -mt-2" />
-              Formación
+        {(hasPermission("Vista Fichas") ||
+          hasPermission("Vista Instructores")) && (
+          <li className="mb-2">
+            <div
+              className="flex items-center justify-between px-3 py-2 rounded hover:shadow hover:bg-gray-700 cursor-pointer"
+              onClick={() => handleToggle("formacion")}
+            >
+              <div className="flex items-center">
+                <SiGoogleclassroom className="inline-block w-6 h-6 mr-2 -mt-2" />
+                Formación
+              </div>
+              <span>{expanded.formacion ? "-" : "+"}</span>
             </div>
-            <span>{expanded.formacion ? "-" : "+"}</span>
-          </div>
-          {expanded.formacion && (
-            <ul className="bg-black text-center text-white text-sm">
-              <li className="py-1 hover:bg-gray-700 rounded mx-4">
+            {expanded.formacion && (
+              <ul className="bg-black text-center text-white text-sm">
+                <li className="py-1 hover:bg-gray-700 rounded mx-4">
                   <div
                     className="flex items-center justify-between px-3 py-2 rounded hover:shadow hover:bg-gray-700 cursor-pointer"
                     onClick={() => handleToggle("fichas")}
@@ -134,36 +136,40 @@ const Sidebar = ({ sidebarToggle }) => {
                   </div>
                 </li>
 
-                {expanded.fichas && ( 
-                    <ul className="bg-black text-center text-white text-xs"> 
-                      <li className="py-1 px-2 hover:bg-gray-700 rounded mx-4">
-                        <a href="/fichas" className="px-3 flex items-center">
-                          <FaArrowsDownToPeople className="inline-block w-4 h-4 mr-2 -mt-1"></FaArrowsDownToPeople>
-                          Fichas
-                        </a>
-                      </li>
-                      <li className="py-1 px-2 hover:bg-gray-700 rounded mx-4">
-                        <a href="/instructor-fichas" className="px-3 flex items-center">
-                          <RiTokenSwapLine className="inline-block w-4 h-4 mr-2 -mt-1"></RiTokenSwapLine>
-                          Fichas por Instructor
-                        </a>
-                      </li>
-                    </ul>
-                  )}
+                {expanded.fichas && (
+                  <ul className="bg-black text-center text-white text-xs">
+                    <li className="py-1 px-2 hover:bg-gray-700 rounded mx-4">
+                      <a href="/fichas" className="px-3 flex items-center">
+                        <FaArrowsDownToPeople className="inline-block w-4 h-4 mr-2 -mt-1"></FaArrowsDownToPeople>
+                        Fichas
+                      </a>
+                    </li>
+                    <li className="py-1 px-2 hover:bg-gray-700 rounded mx-4">
+                      <a
+                        href="/instructor-fichas"
+                        className="px-3 flex items-center"
+                      >
+                        <RiTokenSwapLine className="inline-block w-4 h-4 mr-2 -mt-1"></RiTokenSwapLine>
+                        Fichas por Instructor
+                      </a>
+                    </li>
+                  </ul>
+                )}
 
-              <li className="py-1 hover:bg-gray-700 rounded mx-4">
-                <a href="/instructores" className="px-3 flex items-center">
-                <PiChalkboardTeacher className="inline-block w-4 h-4 mr-2 -mt-1"></PiChalkboardTeacher>
-                Instructores
-                </a>
-              </li>
-            </ul>
-          )}
-        </li>
+                <li className="py-1 hover:bg-gray-700 rounded mx-4">
+                  <a href="/instructores" className="px-3 flex items-center">
+                    <PiChalkboardTeacher className="inline-block w-4 h-4 mr-2 -mt-1"></PiChalkboardTeacher>
+                    Instructores
+                  </a>
+                </li>
+              </ul>
+            )}
+          </li>
         )}
 
         {/* Categorías */}
-        {(hasPermission("Vista Categorias") || (hasPermission("Vista Subcategorias"))) && (
+        {(hasPermission("Vista Categorias") ||
+          hasPermission("Vista Subcategorias")) && (
           <li className="mb-2">
             <div
               className="flex items-center justify-between px-3 py-2 rounded hover:shadow hover:bg-gray-700 cursor-pointer"
@@ -175,15 +181,15 @@ const Sidebar = ({ sidebarToggle }) => {
               </div>
               <span>{expanded.categorias ? "-" : "+"}</span>
             </div>
-            {expanded.categorias && (             
+            {expanded.categorias && (
               <ul className="bg-black text-center text-white text-sm">
                 <li className="py-1 hover:bg-gray-700 rounded mx-4">
                   <a href="/subcategorias" className="px-3 flex items-center">
                     <RiAdminLine className="inline-block w-4 h-4 mr-2 -mt-1"></RiAdminLine>
-                    Administración
+                    Subcategoria
                   </a>
                 </li>
-                
+
                 <li className="py-1 hover:bg-gray-700 rounded mx-4">
                   <div
                     className="flex items-center justify-between px-3 py-2 rounded hover:shadow hover:bg-gray-700 cursor-pointer"
@@ -197,22 +203,28 @@ const Sidebar = ({ sidebarToggle }) => {
                   </div>
                 </li>
 
-                  {expanded.general && ( 
-                    <ul className="bg-black text-center text-white text-xs"> 
-                      <li className="py-1 px-2 hover:bg-gray-700 rounded mx-4">
-                        <a href="/ConsumoControladoGeneral" className="px-3 flex items-center">
-                          <LiaDropbox className="inline-block w-4 h-4 mr-2 -mt-1"></LiaDropbox>
-                          Consumo controlado
-                        </a>
-                      </li>
-                        <li className="py-1 px-2 hover:bg-gray-700 rounded mx-4">
-                        <a href="/ConsumoDevolutivoGeneral" className="px-3 flex items-center">
-                          <FiTool className="inline-block w-4 h-4 mr-2 -mt-1"></FiTool>
-                          Consumo devolutivo
-                        </a>
-                      </li>
-                    </ul>
-                  )}
+                {expanded.general && (
+                  <ul className="bg-black text-center text-white text-xs">
+                    <li className="py-1 px-2 hover:bg-gray-700 rounded mx-4">
+                      <a
+                        href="/ConsumoControladoGeneral"
+                        className="px-3 flex items-center"
+                      >
+                        <LiaDropbox className="inline-block w-4 h-4 mr-2 -mt-1"></LiaDropbox>
+                        Consumo controlado
+                      </a>
+                    </li>
+                    <li className="py-1 px-2 hover:bg-gray-700 rounded mx-4">
+                      <a
+                        href="/ConsumoDevolutivoGeneral"
+                        className="px-3 flex items-center"
+                      >
+                        <FiTool className="inline-block w-4 h-4 mr-2 -mt-1"></FiTool>
+                        Consumo devolutivo
+                      </a>
+                    </li>
+                  </ul>
+                )}
 
                 <li className="py-1 hover:bg-gray-700 rounded mx-4">
                   <div
@@ -226,44 +238,31 @@ const Sidebar = ({ sidebarToggle }) => {
                     <span>{expanded.subdireccion ? "-" : "+"}</span>
                   </div>
                 </li>
-                  {expanded.subdireccion && (
-                    <ul className="bg-black text-center text-white text-xs"> 
-                      <li className="py-1 px-2 hover:bg-gray-700 rounded mx-4">
-                        <a href="/productos" className="px-3 flex items-center">
-                          <LiaDropbox className="inline-block w-4 h-4 mr-2 -mt-1"></LiaDropbox>
-                          Consumo controlado
-                        </a>
-                      </li>
-                        <li className="py-1 px-2 hover:bg-gray-700 rounded mx-4">
-                        <a href="/herramientas" className="px-3 flex items-center">
-                          <FiTool className="inline-block w-4 h-4 mr-2 -mt-1"></FiTool>
-                          Consumo devolutivo
-                        </a>
-                      </li>
-                    </ul>
-                  )}
+                {expanded.subdireccion && (
+                  <ul className="bg-black text-center text-white text-xs">
+                    <li className="py-1 px-2 hover:bg-gray-700 rounded mx-4">
+                      <a href="/productos" className="px-3 flex items-center">
+                        <LiaDropbox className="inline-block w-4 h-4 mr-2 -mt-1"></LiaDropbox>
+                        Consumo controlado
+                      </a>
+                    </li>
+                    <li className="py-1 px-2 hover:bg-gray-700 rounded mx-4">
+                      <a
+                        href="/herramientas"
+                        className="px-3 flex items-center"
+                      >
+                        <FiTool className="inline-block w-4 h-4 mr-2 -mt-1"></FiTool>
+                        Consumo devolutivo
+                      </a>
+                    </li>
+                  </ul>
+                )}
               </ul>
             )}
           </li>
         )}
 
         {/* Otros enlaces */}
-        {/* {hasPermission("vista Productos") && (
-          <li className="mb-2 rounded hover:shadow hover:bg-gray-700 py-2">
-            <a href="/productos" className="px-3">
-              <LiaDropbox className="inline-block w-6 h-6 mr-2 -mt-2"></LiaDropbox>
-              Productos
-            </a>
-          </li>
-        )} */}
-        {/* {hasPermission("vista Herramientas") && (
-          <li className="mb-2 rounded hover:shadow hover:bg-gray-700 py-2">
-            <a href="/herramientas" className="px-3">
-              <FiTool className="inline-block w-6 h-6 mr-2 -mt-2"></FiTool>
-              Herramientas
-            </a>
-          </li>
-        )} */}
         {hasPermission("vista Prestamos") && (
           <li className="mb-2 rounded hover:shadow hover:bg-gray-700 py-2">
             <a href="/prestamos" className="px-3">
@@ -280,14 +279,14 @@ const Sidebar = ({ sidebarToggle }) => {
             </a>
           </li>
         )}
-        {/* {hasPermission("vista Excel") && ( */}
+        {hasPermission("vista Excel") && ( 
           <li className="mb-2 rounded hover:shadow hover:bg-gray-700 py-2">
             <a href="/excel" className="px-3">
               <FaRegFileExcel className="inline-block w-6 h-6 mr-2 -mt-2"></FaRegFileExcel>
               Importar Excel
             </a>
           </li>
-        {/* )} */}
+          )} 
         {hasPermission("vista Unidades medida") && (
           <li className="mb-2 rounded hover:shadow hover:bg-gray-700 py-2">
             <a href="/unidadmedida" className="px-3">

@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { api } from "../api/token";
+import React, { useState,useRef,  useEffect } from "react";
+import { api } from "../api/token"; // Asegúrate de que el cliente API esté correctamente configurado
 import Sidebar from "../components/Sidebar";
 import Home from "../components/Home";
 import MUIDataTable from "mui-datatables";
 import EditIcon from "@mui/icons-material/Edit";
 import IconButton from "@mui/material/IconButton";
-import clsx from "clsx";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { toast } from "react-toastify";
@@ -13,6 +12,7 @@ import "react-toastify/dist/ReactToastify.css";
 import EditFichasModal from "../components/EditFichasModal";
 import AddFichasModal from "../components/AddFichasModal";
 import jsPDF from "jspdf";
+import { useAuth } from "../context/AuthContext";
 import "jspdf-autotable";
 
 const Intructor_Ficha = () => {
@@ -22,11 +22,33 @@ const Intructor_Ficha = () => {
   const [selectedInstructorFicha, setSelectedInstructorFicha] = useState(null);
   const [isOpenAddModal, setIsOpenAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [file, setFile] = useState(null); 
+  const fileInputRef = useRef(null); 
+
+  const { user } = useAuth();
+  const hasPermission = (permissionName) => {
+    return user.DetallePermisos.some(
+      (permiso) => permiso.Permiso.nombrePermiso === permissionName
+    );
+  };
+
+
+  const showToastError = (message) => {
+    toast.error(message, {
+      position: "top-right",
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  };
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/obtener-relaciones", {
+      const response = await api.get("/fichas-instructores", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -51,14 +73,9 @@ const Intructor_Ficha = () => {
       setData(fichaInstructor);
     } catch (error) {
       console.error("Error fetching user data:", error);
-      toast.error("Error al cargar los datos de las fichas", {
+      showToastError("Error al cargar los datos de las fichas", {
         position: "top-right",
         autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
       });
     }
     setLoading(false);
@@ -89,6 +106,60 @@ const Intructor_Ficha = () => {
     setSelectedInstructorFicha(null);
     setIsOpenEditModal(false);
   };
+
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]); // Almacena el archivo en el estado
+  };
+
+  const handleUpload = async () => {
+    if (!file) {
+      showToastError("Por favor selecciona un archivo");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await api.post("/upload-fichas-instructores", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      // Verificar si la respuesta es 200
+      if (response.status === 200) {
+        toast.success("Archivo subido correctamente", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+
+        // Limpiar el archivo seleccionado y el input
+        setFile(null);
+        setTimeout(() => {
+          onClose(response.data);
+        }, 2000);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ""; // Restablecer el valor del input
+        }
+
+        fetchData(); // Recargar los datos
+      } else {
+        showToastError("Hubo un problema con la subida del archivo");
+      }
+    } catch (error) {
+      console.error("Error al subir el archivo:", error);
+      showToastError("Error al subir el archivo");
+    }
+  };
+  
+
 
   const columns = [
     {
@@ -254,7 +325,7 @@ const Intructor_Ficha = () => {
       "nombreUsuario",
     ];
     const tableRows = [];
-  
+
     data.forEach((rowData) => {
       const row = [
         rowData.NumeroFicha || "",
@@ -265,7 +336,7 @@ const Intructor_Ficha = () => {
       ];
       tableRows.push(row);
     });
-  
+
     doc.autoTable({
       head: [tableColumn],
       body: tableRows,
@@ -275,106 +346,134 @@ const Intructor_Ficha = () => {
       headStyles: { fillColor: [0, 57, 107] },
       margin: { top: 10 },
     });
-  
+
     doc.text("Ficha_Instructor", 14, 15);
     doc.save("Ficha_Instructor.pdf");
   };
-  
 
-  return (
-    <div className="flex min-h-screen">
-      <Sidebar sidebarToggle={sidebarToggle} />
-      <div
-        className={`flex flex-col flex-grow p-6 bg-gray-100 ${
-          sidebarToggle ? "ml-64" : ""
-        } mt-16`}
-      >
-        <Home
-          sidebarToggle={sidebarToggle}
-          setSidebarToggle={setSidebarToggle}
-        />
-        <div className="flex justify-end mt-2">
-            <button className="btn-black mr-2" onClick={handleExportPDF}>
-            Exportar PDF
+ return (
+  <div className="flex min-h-screen">
+    <Sidebar sidebarToggle={sidebarToggle} />
+    <div
+      className={`flex flex-col flex-grow p-6 bg-gray-100 ${
+        sidebarToggle ? "ml-64" : ""
+      } mt-16`}
+    >
+      <Home
+        sidebarToggle={sidebarToggle}
+        setSidebarToggle={setSidebarToggle}
+      />
+
+      {/* Contenedor para los botones */}
+      <div className="flex justify-end mt-6 fixed top-16 right-6 z-10 space-x-2">
+
+
+        {/* Botón Subir Excel */}
+        {hasPermission("Subir Fichas e Instructores") && (
+          <div className="flex items-center space-x-2">
+            <input
+              type="file"
+              accept=".xlsx"
+              onChange={handleFileChange}
+              ref={fileInputRef}
+              className="text-xs"
+            />
+            <button
+              className="btn-primary2  mx-2"
+              onClick={handleUpload}
+            >
+              Subir Excel
             </button>
-        </div>
-        <div className="flex-grow flex items-center justify-center">
-          <div className="max-w-7xl overflow-auto">
-            {loading ? (
-              <div className="text-center">Cargando Trimestre...</div>
-            ) : (
-              <MUIDataTable
-                title={
-                  <span className="custom-title">FICHA POR INSTRUCTOR</span>
-                }
-                data={data}
-                columns={columns}
-                options={{
-                  responsive: "standard",
-                  selectableRows: "none",
-                  download: true,
-                  rowsPerPage: 5,
-                  rowsPerPageOptions: [5, 10, 15],
-                  setTableProps: () => {
-                    return {
-                      className: "custom-tables",
-                    };
-                  },
-                  onDownload: (buildHead, buildBody, columns, data) => {
-                    handleCustomExport(data);
-                    return false;
-                  },
-                  textLabels: {
-                    body: {
-                      noMatch: "Lo siento, no se encontraron registros",
-                      toolTip: "Ordenar",
-                    },
-                    pagination: {
-                      next: "Siguiente",
-                      previous: "Anterior",
-                      rowsPerPage: "Filas por página",
-                      displayRows: "de",
-                    },
-                    toolbar: {
-                      search: "Buscar",
-                      downloadCsv: "Descargar CSV",
-                      print: "Imprimir",
-                      viewColumns: "Mostrar columnas",
-                      filterTable: "Filtrar tabla",
-                    },
-                    filter: {
-                      all: "Todos",
-                      title: "FILTROS",
-                      reset: "REINICIAR",
-                    },
-                    viewColumns: {
-                      title: "Mostrar columnas",
-                      titleAria: "Mostrar/Ocultar Columnas",
-                    },
-                    selectedRows: {
-                      text: "fila(s) seleccionada(s)",
-                      delete: "Eliminar",
-                      deleteAria: "Eliminar fila seleccionada",
-                    },
-                  },
-                }}
-              />
-            )}
           </div>
+        )}
+
+        <button
+          className="btn-black text-xs px-2 py-1"
+          onClick={handleExportPDF}
+        >
+          Exportar PDF
+        </button>
+      </div>
+
+      {/* Contenedor de la tabla */}
+      <div className="flex-grow flex items-center justify-center mt-16">
+        <div className="max-w-7xl overflow-auto">
+          {loading ? (
+            <div className="text-center">Cargando Trimestre...</div>
+          ) : (
+            <MUIDataTable
+              title={
+                <span className="custom-title">FICHA POR INSTRUCTOR</span>
+              }
+              data={data}
+              columns={columns}
+              options={{
+                responsive: "standard",
+                selectableRows: "none",
+                download: true,
+                rowsPerPage: 5,
+                rowsPerPageOptions: [5, 10, 15],
+                setTableProps: () => {
+                  return {
+                    className: "custom-tables",
+                  };
+                },
+                onDownload: (buildHead, buildBody, columns, data) => {
+                  handleCustomExport(data);
+                  return false;
+                },
+                textLabels: {
+                  body: {
+                    noMatch: "Lo siento, no se encontraron registros",
+                    toolTip: "Ordenar",
+                  },
+                  pagination: {
+                    next: "Siguiente",
+                    previous: "Anterior",
+                    rowsPerPage: "Filas por página",
+                    displayRows: "de",
+                  },
+                  toolbar: {
+                    search: "Buscar",
+                    downloadCsv: "Descargar CSV",
+                    print: "Imprimir",
+                    viewColumns: "Mostrar columnas",
+                    filterTable: "Filtrar tabla",
+                  },
+                  filter: {
+                    all: "Todos",
+                    title: "FILTROS",
+                    reset: "REINICIAR",
+                  },
+                  viewColumns: {
+                    title: "Mostrar columnas",
+                    titleAria: "Mostrar/Ocultar Columnas",
+                  },
+                  selectedRows: {
+                    text: "fila(s) seleccionada(s)",
+                    delete: "Eliminar",
+                    deleteAria: "Eliminar fila seleccionada",
+                  },
+                },
+              }}
+            />
+          )}
         </div>
       </div>
-      {selectedInstructorFicha && (
-        <EditFichasModal
-          isOpen={isOpenEditModal}
-          onClose={handleCloseEditModalFichas}
-          realacion={selectedInstructorFicha}
-        />
-      )}
-      <AddFichasModal
-        isOpen={isOpenAddModal}
-        onClose={handleCloseAddModalFichas}
-      />
     </div>
-  );
+    {selectedInstructorFicha && (
+      <EditFichasModal
+        isOpen={isOpenEditModal}
+        onClose={handleCloseEditModalFichas}
+        realacion={selectedInstructorFicha}
+      />
+    )}
+    <AddFichasModal
+      isOpen={isOpenAddModal}
+      onClose={handleCloseAddModalFichas}
+    />
+  </div>
+);
+
 };
 export default Intructor_Ficha;

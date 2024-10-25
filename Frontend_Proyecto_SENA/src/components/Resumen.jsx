@@ -4,11 +4,8 @@ import { Link } from "react-router-dom";
 import { api } from "../api/token";
 import { Box, Button, CardHeader, Typography } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
-//import ForestIcon from "@mui/icons-material/Forest";
 import PushPinIcon from '@mui/icons-material/PushPin';
-import FormatColorFillIcon from "@mui/icons-material/FormatColorFill";
 import HardwareIcon from "@mui/icons-material/Hardware";
-import DoorFrontIcon from "@mui/icons-material/DoorFront";
 import LineChart from "../components/LineChart";
 import ProgressCircle from "./../components/ProgressCircle";
 import { green, grey } from "@mui/material/colors";
@@ -16,7 +13,6 @@ import StatBox1 from "./../components/StatBox1";
 import { mockTransactions } from "../data/mockData";
 import BarChart from "../components/BarChart";
 import PieChart from "../components/PieChart";
-import Reportes from "../pages/Reportes";
 import StatBox2 from "./StatBox2";
 import StatBox3 from "./StatBox3";
 
@@ -24,6 +20,7 @@ const Resumen = () => {
   const [loading, setLoading] = useState(false);
   const [totalPedidos2024, setTotalPedidos2024] = useState(0);
   const [cantidadHerramientas, setCantidadHerramientas] = useState(0);
+  const [historial, setHistorial] = useState([]);
 
   const fetchPedidos = async () => {
     setLoading(true);
@@ -66,6 +63,23 @@ const Resumen = () => {
 
     fetchHerramientas();
   }, []);
+
+
+  useEffect(() => {
+    const fetchHistorial = async () => {
+      try {
+        const response = await api.get("/historial");
+        setHistorial(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error al obtener el historial:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchHistorial();
+  }, []);
+
 
   const navigate = useNavigate();
 
@@ -136,10 +150,6 @@ const Resumen = () => {
             justifyContent="center"
           >
             <StatBox1
-              cantidad="190"
-              producto="Madera"
-              progress="0.75"
-              disponible="Disp: 75%"
               icon={<PushPinIcon sx={{ color: green[600], fontSize: "26px" }} />}
             />
           </Box>
@@ -151,10 +161,6 @@ const Resumen = () => {
             justifyContent="center"
           >
             <StatBox2
-              cantidad="1,225"
-              producto="Pintura"
-              progress="0.50"
-              disponible="Disp: 50%"
               icon={
                 <PushPinIcon
                   sx={{ color: green[600], fontSize: "26px" }}
@@ -170,10 +176,6 @@ const Resumen = () => {
             justifyContent="center"
           >
             <StatBox3
-              cantidad="12,441"
-              producto="Puntillas"
-              progress="0.30"
-              disponible="Disp: 30%"
               icon={
                 <HardwareIcon sx={{ color: green[600], fontSize: "26px" }} />
               }
@@ -208,58 +210,65 @@ const Resumen = () => {
           </Box>
 
           <Box
-            gridColumn="span 4"
-            gridRow="span 2"
-            backgroundColor="grisClaro.main"
-            overflow="auto"
+      gridColumn="span 4"
+      gridRow="span 2"
+      backgroundColor="grisClaro.main"
+      overflow="auto"
+    >
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        borderBottom={`4px solid ${grey[900]}`}
+        color={grey[900]}
+        p="15px"
+      >
+        <Typography color={grey[900]} variant="h6" fontWeight="600">
+          Historial de Transacciones
+        </Typography>
+      </Box>
+
+      {loading ? (
+        <Typography variant="h6" fontWeight="400" color={grey[900]} p="15px">
+          Cargando...
+        </Typography>
+      ) : (
+        historial.map((transaction, i) => (
+          <Box
+            key={`${transaction.tipoAccion}-${i}`}
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            borderBottom={`4px solid ${grey[900]}`}
+            p="15px"
           >
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              borderBottom={`4px solid ${grey[900]}`}
-              color={grey[900]}
-              p="15px"
-            >
-              <Typography color={grey[900]} variant="h" fontWeight="600">
-                Historial de Transacciones
+            <Box display="flex" flexDirection="column">
+              <Typography color={green[500]} variant="h6" fontWeight="400">
+                {transaction.tipoAccion}
+              </Typography>
+              <Typography color={grey[900]} variant="body1" fontWeight="200">
+                {transaction.Usuario?.nombre}
               </Typography>
             </Box>
-            {mockTransactions.map((transaction, i) => (
-              <Box
-                key={`${transaction.accion}-${i}`}
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                borderBottom={`4px solid ${grey[900]}`}
-                p="15px"
-              >
-                <Box display="flex" flexDirection="column">
-                  <Typography color={green[500]} variant="h" fontWeight="400">
-                    {transaction.accion}
-                  </Typography>
-                  <Typography color={grey[900]} variant="h" fontWeight="200">
-                    {transaction.usuario}
-                  </Typography>
-                </Box>
-                <Box color={grey[900]} variant="h6" fontWeight="200">
-                  {transaction.fecha}
-                </Box>
+            <Typography color={grey[900]} variant="body1" fontWeight="200">
+              {new Date(transaction.createdAt).toLocaleDateString()}
+            </Typography>
 
-                <Link to="/historial">
-                  <Box
-                    backgroundColor={green[500]}
-                    p="5px 10px"
-                    borderRadius="4px"
-                    variant="h6"
-                    fontWeight="200"
-                  >
-                    {transaction.estado}
-                  </Box>
-                </Link>
+            <Link to="/historial">
+              <Box
+                backgroundColor={green[500]}
+                p="5px 10px"
+                borderRadius="4px"
+                variant="h6"
+                fontWeight="200"
+              >
+                Ver
               </Box>
-            ))}
+            </Link>
           </Box>
+        ))
+      )}
+    </Box>
 
           {/* FILA 3 */}
           <Box
@@ -279,7 +288,7 @@ const Resumen = () => {
             >
               <ProgressCircle size="125" />
               <Typography variant="h" color={green[500]} sx={{ mt: "15px" }}>
-                {cantidadHerramientas} Herramientas en buen estado
+            
               </Typography>
               <Typography variant="h">
                 Con gestión constante para el incremento{" "}

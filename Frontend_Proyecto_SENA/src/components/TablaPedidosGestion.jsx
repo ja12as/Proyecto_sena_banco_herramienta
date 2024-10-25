@@ -67,7 +67,7 @@ const TablaPedidosGestion = ({ actualizarCantidadSalida }) => {
             cantidadSolicitar: producto.PedidoProducto.cantidadSolicitar,
             cantidadActual,
             cantidadSalida: producto.PedidoProducto.cantidadSalida || "",
-            observaciones: producto.PedidoProducto.observaciones,
+            observaciones: producto.PedidoProducto.observaciones || "", // Agregamos valor por defecto
           };
         });
 
@@ -121,6 +121,13 @@ const TablaPedidosGestion = ({ actualizarCantidadSalida }) => {
 
     actualizarCantidadSalida(index, productoId, numericValue);
   };
+
+  const handleObservacionesChange = (index, value) => {
+    const updatedData = [...data];
+    updatedData[index].observaciones = value;
+    setData(updatedData);
+  };
+  
 
   const columns = [
     {
@@ -231,10 +238,27 @@ const TablaPedidosGestion = ({ actualizarCantidadSalida }) => {
             {columnMeta.label}
           </th>
         ),
-        customBodyRender: (value) => <div className="text-center">{value}</div>,
+        customBodyRender: (value, tableMeta) => {
+          const rowIndex = tableMeta.rowIndex;
+          return (
+            <div className="flex justify-center">
+              <input
+                type="text"
+                value={data[rowIndex].observaciones || ""} // Asegúrate de que esté vinculado al estado
+                onChange={(e) =>
+                  handleObservacionesChange(rowIndex, e.target.value)
+                }
+                className="border px-2 py-1 rounded text-center"
+              />
+            </div>
+          );
+        },
       },
-    },
+    }
+    
+    
   ];
+
 
   return (
     <div>
@@ -306,4 +330,5 @@ const TablaPedidosGestion = ({ actualizarCantidadSalida }) => {
     </div>
   );
 };
+
 export default TablaPedidosGestion;

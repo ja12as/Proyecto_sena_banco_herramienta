@@ -32,21 +32,25 @@ const EditHerramientaModal = ({ isOpen, onClose, herramienta }) => {
     const fetchsubcategorias = async () => {
       try {
         const response = await api.get("/subcategoria/estado");
-        setSubcategorias(response.data);
+        const filteredSubcategorias = response.data.filter(
+          (Categoria) => Categoria.CategoriaId === 2 
+        );
+        setSubcategorias(filteredSubcategorias);
       } catch (error) {
-        showToastError("Error al cargar subcategorías");
       }
     };
 
     const fetchEstados = async () => {
       try {
         const response = await api.get("/Estado");
-        setEstados(response.data);
+        const filteredEstados = response.data.filter(
+          (estado) => estado.id === 1 || estado.id === 2
+        );
+        setEstados(filteredEstados);
       } catch (error) {
         showToastError("Error al cargar los estados");
       }
     };
-
 
     fetchsubcategorias();
     fetchEstados();
@@ -57,7 +61,16 @@ const EditHerramientaModal = ({ isOpen, onClose, herramienta }) => {
     try {
       const response = await api.get(`/herramienta/${herramientaId}`);
       if (response.status === 200) {
-        const { nombre, codigo, marca, condicion, observaciones,  EstadoId, SubcategoriaId, UsuarioId} = response.data;
+        const {
+          nombre,
+          codigo,
+          marca,
+          condicion,
+          observaciones,
+          EstadoId,
+          SubcategoriaId,
+          UsuarioId,
+        } = response.data;
         setFormData({
           nombre: nombre || "",
           codigo: codigo || "",
@@ -69,7 +82,10 @@ const EditHerramientaModal = ({ isOpen, onClose, herramienta }) => {
         });
         setLoading(false);
       } else {
-        console.error("Error fetching herramienta details:", response.data.message);
+        console.error(
+          "Error fetching herramienta details:",
+          response.data.message
+        );
         toast.error("Error al cargar la información de la herramienta.", {
           position: "top-right",
         });
@@ -91,7 +107,7 @@ const EditHerramientaModal = ({ isOpen, onClose, herramienta }) => {
       if (!nameRegex.test(value) || /\d/.test(value)) {
         errorMessage = "El nombre no puede contener caracteres especiales.";
       }
-    } 
+    }
     return errorMessage;
   };
 
@@ -109,9 +125,25 @@ const EditHerramientaModal = ({ isOpen, onClose, herramienta }) => {
   };
 
   const handleUpdate = async () => {
-    const { nombre, codigo, marca, condicion, observaciones,  EstadoId, SubcategoriaId  } = formData;
+    const {
+      nombre,
+      codigo,
+      marca,
+      condicion,
+      observaciones,
+      EstadoId,
+      SubcategoriaId,
+    } = formData;
 
-    if (!codigo || !nombre || !condicion || !observaciones|| !marca || !EstadoId || !SubcategoriaId ) {
+    if (
+      !codigo ||
+      !nombre ||
+      !condicion ||
+      !observaciones ||
+      !marca ||
+      !EstadoId ||
+      !SubcategoriaId
+    ) {
       toast.error("Todos los campos son obligatorios.", {
         position: "top-right",
       });
@@ -122,14 +154,14 @@ const EditHerramientaModal = ({ isOpen, onClose, herramienta }) => {
     try {
       const response = await api.put(
         `/herramienta/${herramienta.id}`,
-        { 
-          nombre, 
-          codigo, 
-          marca, 
-          condicion, 
-          observaciones, 
+        {
+          nombre,
+          codigo,
+          marca,
+          condicion,
+          observaciones,
           EstadoId: EstadoId,
-          SubcategoriaId: SubcategoriaId, 
+          SubcategoriaId: SubcategoriaId,
         },
         {
           headers: {
@@ -152,7 +184,10 @@ const EditHerramientaModal = ({ isOpen, onClose, herramienta }) => {
           onClose(response.data);
         }, 2000);
       } else {
-        console.error("Error updating herramienta profile:", response.data.message);
+        console.error(
+          "Error updating herramienta profile:",
+          response.data.message
+        );
         toast.error("Error al actualizar la información de la herramienta.", {
           position: "top-right",
         });
@@ -188,7 +223,6 @@ const EditHerramientaModal = ({ isOpen, onClose, herramienta }) => {
                 <h6 className="font-bold text-center text-2xl mb-2">
                   Editar Herramienta
                 </h6>
-
 
                 <div className="flex flex-col">
                   <label className="mb-1 font-bold text-sm">Nombre *</label>
@@ -243,7 +277,6 @@ const EditHerramientaModal = ({ isOpen, onClose, herramienta }) => {
                   )}
                 </div>
 
-
                 <div className="flex flex-col">
                   <label className="mb-1 font-bold text-sm">Condicion *</label>
                   <select
@@ -252,7 +285,7 @@ const EditHerramientaModal = ({ isOpen, onClose, herramienta }) => {
                     value={formData.condicion}
                     onChange={handleInputChange}
                   >
-                    <option value="" >Seleccione una Condicion</option>
+                    <option value="">Seleccione una Condicion</option>
                     <option value="BUENO">BUENO</option>
                     <option value="REGULAR">REGULAR</option>
                     <option value="MALO">MALO</option>
@@ -260,7 +293,9 @@ const EditHerramientaModal = ({ isOpen, onClose, herramienta }) => {
                 </div>
 
                 <div className="flex flex-col">
-                  <label className="mb-1 font-bold text-sm">Observaciones *</label>
+                  <label className="mb-1 font-bold text-sm">
+                    Observaciones *
+                  </label>
                   <input
                     className="bg-grisClaro text-sm rounded-lg px-2 h-8"
                     type="text"
@@ -275,9 +310,10 @@ const EditHerramientaModal = ({ isOpen, onClose, herramienta }) => {
                   )}
                 </div>
 
-
                 <div className="flex flex-col">
-                  <label className="mb-1 font-bold text-sm">Subcategoría *</label>
+                  <label className="mb-1 font-bold text-sm">
+                    Subcategoría *
+                  </label>
                   <select
                     className="bg-grisClaro text-sm rounded-lg px-2 h-8"
                     name="SubcategoriaId"
@@ -292,7 +328,6 @@ const EditHerramientaModal = ({ isOpen, onClose, herramienta }) => {
                     ))}
                   </select>
                 </div>
-
 
                 <div className="flex flex-col">
                   <label className="mb-1 font-bold text-sm">Estado *</label>
@@ -321,8 +356,6 @@ const EditHerramientaModal = ({ isOpen, onClose, herramienta }) => {
                     ))}
                   </select>
                 </div>
-
-
               </div>
             </div>
           </div>

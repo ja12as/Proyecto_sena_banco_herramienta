@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import fondo from "/logoSena.png";
@@ -8,7 +8,6 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { FaGripLinesVertical } from "react-icons/fa6";
 import TablaHerramientas from "../components/TablaHerramientas";
 import { api } from "../api/token";
-
 
 const FormatoHerram = () => {
   const [formErrors, setFormErrors] = useState({});
@@ -70,33 +69,39 @@ const FormatoHerram = () => {
         errorMessage = "No puede contener números o caracteres especiales.";
       }
     }
+    if (name === "correo") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Expresión regular para validar correo
+      if (!emailRegex.test(value)) {
+        errorMessage = "Correo electrónico no válido.";
+      }
+    }
     return errorMessage;
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const errorMessage = validateInput(name, value);
+
+    // Convertir a mayúsculas si es necesario
+    const upperCasedValue = ["area", "jefeOficina", "servidorAsignado"].includes(name)
+      ? value.toUpperCase()
+      : value;
+
+    const errorMessage = validateInput(name, upperCasedValue);
     setFormErrors((prevErrors) => ({
       ...prevErrors,
       [name]: errorMessage,
     }));
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: upperCasedValue,
     }));
   };
 
   const handleHerramientaChange = (updatedHerramienta) => {
-    console.log("Herramientas recibidos en el padre:", updatedHerramienta); // Verifica que se pasan los productos correctos
     setFormData({ ...formData, herramientas: updatedHerramienta });
   };
 
-
-
-
   const handleCreate = async () => {
-    console.log("Estado de formData antes de enviar:", formData);
-  
     const {
       codigoFicha,
       area,
@@ -108,52 +113,92 @@ const FormatoHerram = () => {
       herramientas,
     } = formData;
   
-    console.log("Datos a enviar:", formData);
-  
-    if (
-      !codigoFicha ||
-      !area ||
-      !jefeOficina ||
-      !cedulaJefeOficina ||
-      !servidorAsignado ||
-      !cedulaServidor ||
-      !correo ||
-      !herramientas.some((p) => p.HerramientumId && p.codigo)
-    ) {
-      showToastError("Todos los campos son obligatorios.");
+    // Validaciones individuales de los campos
+    if (!codigoFicha) {
+      showToastError("El campo 'Código de Ficha' es obligatorio.");
       return;
     }
   
+    if (!area) {
+      showToastError("El campo 'Área' es obligatorio.");
+      return;
+    }
+  
+    if (!jefeOficina) {
+      showToastError("El campo 'Jefe de Oficina' es obligatorio.");
+      return;
+    }
+  
+    if (!cedulaJefeOficina) {
+      showToastError("El campo 'Cédula del Jefe de Oficina' es obligatorio.");
+      return;
+    }
+  
+    if (!servidorAsignado) {
+      showToastError("El campo 'Servidor Asignado' es obligatorio.");
+      return;
+    }
+  
+    if (!cedulaServidor) {
+      showToastError("El campo 'Cédula del Servidor' es obligatorio.");
+      return;
+    }
+  
+    if (!correo) {
+      showToastError("El campo 'Correo' es obligatorio.");
+      return;
+    }
+  
+    // Validar que haya herramientas con HerramientumId y codigo
+    if (!herramientas || herramientas.length === 0) {
+      showToastError("Debe agregar al menos una herramienta.");
+      return;
+    }
+  
+    // Validar cada herramienta individualmente
+    for (let i = 0; i < herramientas.length; i++) {
+      if (!herramientas[i].HerramientumId) {
+        showToastError(`El campo 'Herramienta' es obligatorio en la fila ${i + 1}.`);
+        return;
+      }
+  
+      if (!herramientas[i].codigo) {
+        showToastError(`El campo 'Código' es obligatorio en la fila ${i + 1}.`);
+        return;
+      }
+    }
+  
+    // Si todas las validaciones pasaron, enviar los datos
     try {
       const response = await api.post("/prestamos", formData, {
         headers: {
           "Content-Type": "application/json",
         },
       });
-    
-      console.log("Respuesta del servidor:", response);
-    
+  
       if (response.status === 201) {
-        toast.success("Prestamo creado con éxito.");
+        toast.success("Préstamo creado con éxito.");
+  
+        // Limpiar el formulario después de crear el préstamo
         setFormData({
-          codigoFicha: '',
-          area: '',
-          jefeOficina: '',
-          cedulaJefeOficina: '',
-          servidorAsignado: '',
-          cedulaServidor: '',
-          correo: '',
+          codigoFicha: "",
+          area: "",
+          jefeOficina: "",
+          cedulaJefeOficina: "",
+          servidorAsignado: "",
+          cedulaServidor: "",
+          correo: "",
           herramientas: [
             {
               HerramientumId: "",
               codigo: "",
               observaciones: "",
-            }
-          ], 
+            },
+          ],
         });
       } else {
         const errorData = await response.json();
-        showToastError(errorData.message || "Error al crear el pedido.");
+        showToastError(errorData.message || "Error al crear el préstamo.");
       }
     } catch (error) {
       console.error("Error en la comunicación con el servidor:", error);
@@ -161,7 +206,6 @@ const FormatoHerram = () => {
     }
   };
   
-
   return (
     <div className="flex flex-col md:flex-row h-screen bg-grisClaro">
       <div className="hidden md:flex items-star justify-center md:w-2/3 bg-grisClaro mx-4">
@@ -430,10 +474,14 @@ const FormatoHerram = () => {
                           value={formData.correo}
                           onChange={handleInputChange}
                         />
+                        {formErrors.correo && (
+                          <div className="text-red-400 text-xs mt-1 px-2">
+                            {formErrors.correo}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
-
                 </div>
               )}
             </div>
@@ -452,9 +500,9 @@ const FormatoHerram = () => {
                 <div className="flex flex-col rounded-lg w-full">
                   <div className="flex flex-row justify-between w-full mb-4">
                     <TablaHerramientas
-                        accordionStates={accordionStates}
-                        handleHerramientaChange={handleHerramientaChange}
-                        herramientas={formData.herramientas}
+                      accordionStates={accordionStates}
+                      handleHerramientaChange={handleHerramientaChange}
+                      herramientas={formData.herramientas}
                     />
                   </div>
                 </div>
@@ -462,9 +510,12 @@ const FormatoHerram = () => {
             </div>
 
             <div className="flex justify-center items-center w-2/4 mt-10 mx-auto">
-            <button className="btn-black2 mb-4" onClick={() => handleCreate("herramientas")}>
-              Enviar Solicitud
-            </button>
+              <button
+                className="btn-black2 mb-4"
+                onClick={() => handleCreate("herramientas")}
+              >
+                Enviar Solicitud
+              </button>
               <FaGripLinesVertical className="h-24 mx-4" />
               <div onClick={handleClick} style={{ cursor: "pointer" }}>
                 <h6 className="font-semibold">FORMATO DE PRODUCTOS</h6>

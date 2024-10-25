@@ -264,7 +264,9 @@ const Fichas = () => {
           sidebarToggle={sidebarToggle}
           setSidebarToggle={setSidebarToggle}
         />
-        <div className="flex justify-end mt-2">
+
+        {/* Contenedor para los botones */}
+        <div className="flex justify-end mt-6 fixed top-16 right-6 z-10">
           <button 
             className="btn-black mr-2" 
             onClick={handleExportPDF}
@@ -280,7 +282,11 @@ const Fichas = () => {
             </button>
           )}
         </div>
-        <div className="flex-grow flex items-center justify-center">
+
+        {/* Contenedor de la tabla */}
+        <div className="flex-grow flex items-center justify-center mt-16">
+          {" "}
+          {/* Añadir mt-16 para espacio */}
           <div className="max-w-7xl overflow-auto">
             {loading ? (
               <div className="text-center">Cargando Fichas...</div>

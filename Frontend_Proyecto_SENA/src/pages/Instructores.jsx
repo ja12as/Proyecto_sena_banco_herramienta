@@ -34,26 +34,30 @@ const Instructores = () => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-  
+
       const [usuariosResponse, estadosResponse] = await Promise.all([
-        api.get("/usuarios", { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }),
-        api.get("/Estado", { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } })
+        api.get("/usuarios", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }),
+        api.get("/Estado", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }),
       ]);
-  
+
       const usuarios = usuariosResponse.data;
       const estados = estadosResponse.data;
 
       const InstructoresyCreador = response.data.map((instructor) => {
         const usuario = usuarios.find((u) => u.id === instructor.UsuarioId);
         const estado = estados.find((e) => e.id === instructor.EstadoId);
-  
+
         return {
           ...instructor,
-          usuarioname: usuario ? usuario.nombre : 'Desconocido',
-          estadoName: estado ? estado.estadoName : 'Desconocido',
+          usuarioname: usuario ? usuario.nombre : "Desconocido",
+          estadoName: estado ? estado.estadoName : "Desconocido",
         };
       });
-  
+
       InstructoresyCreador.sort((a, b) => a.id - b.id);
       setData(InstructoresyCreador);
     } catch (error) {
@@ -261,30 +265,30 @@ const Instructores = () => {
     const doc = new jsPDF();
     const tableColumn = ["Nombre", "Correo", "Usuario"];
     const tableRows = [];
-  
+
     data.forEach((instructor) => {
       const instructorData = [
-        instructor.nombre || "N/A", 
-        instructor.correo || "N/A", 
-        instructor.usuarioname || "N/A", 
+        instructor.nombre || "N/A",
+        instructor.correo || "N/A",
+        instructor.usuarioname || "N/A",
       ];
       tableRows.push(instructorData);
     });
-  
+
     doc.autoTable({
       head: [tableColumn],
       body: tableRows,
       startY: 20,
-      theme: 'striped',
+      theme: "striped",
       styles: { fontSize: 10 },
-      headStyles: { fillColor: [0, 57, 107] }, 
+      headStyles: { fillColor: [0, 57, 107] },
       margin: { top: 10 },
     });
-  
-    doc.text("Instructores", 14, 15)
+
+    doc.text("Instructores", 14, 15);
     doc.save("Instructores.pdf");
   };
-  
+
   return (
     <div className="flex min-h-screen">
       <Sidebar sidebarToggle={sidebarToggle} />

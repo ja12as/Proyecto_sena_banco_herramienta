@@ -8,6 +8,7 @@ import Home from "../components/Home";
 import MUIDataTable from "mui-datatables";
 import EditIcon from "@mui/icons-material/Edit";
 import IconButton from "@mui/material/IconButton";
+import EditCantidadEntradaModal from "../components/EditCantidadEntradaModal"; 
 import EditProductModal from "../components/EditProductModal";
 import AddProductModal from "../components/AddProductModal";
 import clsx from "clsx";
@@ -20,6 +21,7 @@ const Productos = () => {
   const [sidebarToggle, setSidebarToggle] = useState(false);
   const [data, setData] = useState([]);
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
+  const [isOpenEditCantidadEntradaModal, setIsOpenEditCantidadEntradaModal] = useState(false); 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isOpenAddModal, setIsOpenAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -29,27 +31,39 @@ const Productos = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/producto", {
+      const subcategoriaResponse = await api.get("/subcategoria", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-
-      const productoconUnidadSub = response.data.map((produc) => ({
+      const subcategoriasCategoria1 = subcategoriaResponse.data
+        .filter((subcategoria) => subcategoria.CategoriaId === 1)
+        .map((subcategoria) => subcategoria.id);
+      const productoResponse = await api.get("/producto", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      const productosFiltrados = productoResponse.data.filter(
+        (producto) => subcategoriasCategoria1.includes(producto.SubcategoriaId)
+      );
+      const productoconUnidadSub = productosFiltrados.map((produc) => ({
         ...produc,
         productoNombre: produc.nombre,
         nombreUser: produc.Usuario ? produc.Usuario.nombre : "Desconocido",
         estadoName: produc.Estado ? produc.Estado.estadoName : "Desconocido",
-        subcategoriaName: produc.Subcategorium ? produc.Subcategorium.subcategoriaName : "Desconocido",
-        unidadNombre: produc.UnidadDeMedida ? produc.UnidadDeMedida.nombre : "Desconocido",
-
+        subcategoriaName: produc.Subcategorium
+          ? produc.Subcategorium.subcategoriaName
+          : "Desconocido",
+        unidadNombre: produc.UnidadDeMedida
+          ? produc.UnidadDeMedida.nombre
+          : "Desconocido",
       }));
-
       productoconUnidadSub.sort((a, b) => a.id - b.id);
       setData(productoconUnidadSub);
     } catch (error) {
-      console.error("Error fetching subcategoria data:", error);
-      toast.error("Error al cargar los datos de la  subcategoria", {
+      console.error("Error fetching data:", error);
+      toast.error("Error al cargar los datos", {
         position: "top-right",
         autoClose: 2000,
         hideProgressBar: false,
@@ -61,7 +75,7 @@ const Productos = () => {
     }
     setLoading(false);
   };
-
+  
   useEffect(() => {
     fetchData();
   }, []);
@@ -90,6 +104,19 @@ const Productos = () => {
     }
     setIsOpenAddModal(false);
   };
+  const handleEditCantidadEntradaClick = (rowIndex) => {
+    const product = data[rowIndex];
+    setSelectedProduct(product);
+    setIsOpenEditCantidadEntradaModal(true);
+  };
+
+  const handleCloseEditCantidadEntradaModal = (updatedProduct) => {
+    if (updatedProduct) {
+      fetchData();
+    }
+    setIsOpenEditCantidadEntradaModal(false);
+    setSelectedProduct(null);
+  };
 
   const columns = [
     {
@@ -112,9 +139,10 @@ const Productos = () => {
       label: "Nombre del Producto",
       options: {
         customHeadRender: (columnMeta) => (
-          <th 
+          <th
             key={columnMeta.label}
-            className="text-center bg-white text-black uppercase text-xs font-bold">
+            className="text-center bg-white text-black uppercase text-xs font-bold"
+          >
             {columnMeta.label}
           </th>
         ),
@@ -151,7 +179,7 @@ const Productos = () => {
         customBodyRender: (value) => <div className="text-center">{value}</div>,
       },
     },
-    {
+    /* {
       name: "cantidadEntrada",
       label: "Cantidad Entrada",
       options: {
@@ -164,6 +192,28 @@ const Productos = () => {
           </th>
         ),
         customBodyRender: (value) => <div className="text-center">{value}</div>,
+      },
+    }, */
+    {
+      name: "cantidadEntrada",
+      label: "CANTIDAD DE ENTRADA",
+      options: {
+        customHeadRender: (columnMeta) => (
+          <th className="text-center bg-white text-black uppercase text-xs font-bold">{columnMeta.label}</th>
+        ),
+        customBodyRender: (value, tableMeta) => (
+          <div className="flex items-center justify-center">
+            <span>{value}</span>
+            <IconButton
+              onClick={() => handleEditCantidadEntradaClick(tableMeta.rowIndex)}
+              color="primary"
+              aria-label="edit cantidad entrada"
+              size="small"
+            >
+              <EditIcon />
+            </IconButton>
+          </div>
+        ),
       },
     },
     {
@@ -363,24 +413,24 @@ const Productos = () => {
   };
 
   const handleExportPDF = () => {
-    const doc = new jsPDF('landscape'); 
+    const doc = new jsPDF("landscape");
     const tableColumn = [
-      "ID", 
-      "Nombre del Producto", 
-      "Codigo", 
-      "Descripcion", 
-      "Cantidad Entrada", 
-      "Cantidad Salida", 
-      "Cantidad Actual", 
-      "Volumen Total", 
-      "Marca", 
-      "Unidad de Medida", 
-      "Subcategoria", 
-      "Usuario", 
-      "ESTADO"
+      "ID",
+      "Nombre del Producto",
+      "Codigo",
+      "Descripcion",
+      "Cantidad Entrada",
+      "Cantidad Salida",
+      "Cantidad Actual",
+      "Volumen Total",
+      "Marca",
+      "Unidad de Medida",
+      "Subcategoria",
+      "Usuario",
+      "ESTADO",
     ];
     const tableRows = [];
-  
+
     data.forEach((producto) => {
       const productoData = [
         producto.id || "",
@@ -395,21 +445,21 @@ const Productos = () => {
         producto.unidadNombre || "",
         producto.subcategoriaName || "",
         producto.nombreUser || "",
-        producto.estadoName || ""
+        producto.estadoName || "",
       ];
       tableRows.push(productoData);
     });
-  
+
     doc.autoTable({
       head: [tableColumn],
       body: tableRows,
       startY: 20,
-      theme: 'striped',
+      theme: "striped",
       styles: { fontSize: 10 },
       headStyles: { fillColor: [0, 57, 107] },
-      margin: { top: 10 }
+      margin: { top: 10 },
     });
-  
+
     doc.text("Listado de Productos", 14, 15);
     doc.save("Productos.pdf");
   };
@@ -426,7 +476,9 @@ const Productos = () => {
           sidebarToggle={sidebarToggle}
           setSidebarToggle={setSidebarToggle}
         />
-        <div className="flex justify-end mt-2">
+
+        {/* Contenedor para los botones */}
+        <div className="flex justify-end mt-6 fixed top-16 right-6 z-10">
           <button className="btn-black mr-2" onClick={handleExportPDF}>
             Exportar PDF
           </button>
@@ -436,7 +488,11 @@ const Productos = () => {
             </button>
           )}
         </div>
-        <div className="flex-grow flex items-center justify-center">
+
+        {/* Contenedor de la tabla */}
+        <div className="flex-grow flex items-center justify-center mt-16">
+          {" "}
+          {/* Añadir mt-16 para espacio */}
           <div className="w-full max-w-9xl mx-auto">
             {loading ? (
               <div className="text-center">Cargando productos...</div>
@@ -511,6 +567,13 @@ const Productos = () => {
         <EditProductModal
           isOpen={isOpenEditModal}
           onClose={handleCloseEditModal}
+          product={selectedProduct}
+        />
+      )}
+      {selectedProduct && (
+        <EditCantidadEntradaModal
+          isOpen={isOpenEditCantidadEntradaModal}
+          onClose={handleCloseEditCantidadEntradaModal}
           product={selectedProduct}
         />
       )}

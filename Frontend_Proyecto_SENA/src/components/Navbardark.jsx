@@ -3,7 +3,7 @@ import fondo from "/logoSena.png";
 
 const Navbardark = ({ sidebarToggle, setSidebarToggle }) => {
   return (
-    <nav 
+    <nav
       className={`bg-black shadow px-4 py-3 flex justify-between items-center fixed top-0 left-0 z-50 w-full transition-all duration-300`}
       style={{
         marginLeft: sidebarToggle ? "16rem" : "0",

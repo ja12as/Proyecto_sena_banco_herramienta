@@ -1,18 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { api } from "../api/token"; 
+import { api } from "../api/token";
 import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const AddProductModal = ({ isOpen, onClose, product }) => {
-
   const [subcategorias, setSubcategorias] = useState([]);
   const [estados, setEstados] = useState([]);
-  const [usuarios, setUsuarios] = useState([]);
   const [unidades, setUnidad] = useState([]);
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     nombre: "",
     codigo: "",
@@ -30,7 +27,6 @@ const AddProductModal = ({ isOpen, onClose, product }) => {
     }
   }, [isOpen]);
 
-
   useEffect(() => {
     if (product) {
       setFormData({
@@ -42,7 +38,6 @@ const AddProductModal = ({ isOpen, onClose, product }) => {
         UnidadMedidaId: product.UnidadMedidaId || "",
         SubcategoriaId: product.SubcategoriaId || "",
         EstadoId: product.EstadoId || "",
-
       });
     }
   }, [product]);
@@ -51,9 +46,11 @@ const AddProductModal = ({ isOpen, onClose, product }) => {
     const fetchsubcategorias = async () => {
       try {
         const response = await api.get("/subcategoria/estado");
-        setSubcategorias(response.data);
+        const filteredSubcategorias = response.data.filter(
+          (Categoria) => Categoria.CategoriaId === 1 
+        );
+        setSubcategorias(filteredSubcategorias);
       } catch (error) {
-        showToastError("Error al cargar subcategorías");
       }
     };
 
@@ -61,7 +58,7 @@ const AddProductModal = ({ isOpen, onClose, product }) => {
       try {
         const response = await api.get("/Estado");
         const filteredEstados = response.data.filter(
-          (estado) => estado.id === 1 || estado.id === 2 
+          (estado) => estado.id === 1 || estado.id === 2
         );
         setEstados(filteredEstados);
       } catch (error) {
@@ -97,7 +94,9 @@ const AddProductModal = ({ isOpen, onClose, product }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     const processedValue =
-      name === "UnidadMedidaId" || name === "EstadoId" || name === "SubcategoriaId"
+      name === "UnidadMedidaId" ||
+      name === "EstadoId" ||
+      name === "SubcategoriaId"
         ? Number(value)
         : value;
 
@@ -140,40 +139,96 @@ const AddProductModal = ({ isOpen, onClose, product }) => {
   };
 
   const handleCreate = async () => {
-    const {nombre, codigo, descripcion, cantidadEntrada, marca, UnidadMedidaId, SubcategoriaId, EstadoId,} = formData;
+    const {
+      nombre,
+      codigo,
+      descripcion,
+      cantidadEntrada,
+      marca,
+      UnidadMedidaId,
+      SubcategoriaId,
+      EstadoId,
+    } = formData;
+  
+    // Validar individualmente los campos y acumular errores
     const codigoError = validateInput("codigo", codigo);
     const nombreError = validateInput("nombre", nombre);
-    const descripcionError = validateInput("fechaDeIngreso", descripcion);
-    const cantidadEntradaError = validateInput("fechaDeIngreso", cantidadEntrada);
+    const descripcionError = validateInput("descripcion", descripcion);
+    const cantidadEntradaError = validateInput("cantidadEntrada", cantidadEntrada);
     const marcaError = validateInput("marca", marca);
+  
+    let hasErrors = false;
+  
+    // Mostrar errores individuales
     if (nombreError) {
+      showToastError("El campo 'Nombre' es obligatorio.");
+      hasErrors = true;
+    }
+    
+    if (codigoError) {
+      showToastError("El campo 'Código' es obligatorio o ya está en uso.");
+      hasErrors = true;
+    }
+    
+    if (descripcionError) {
+      showToastError("El campo 'Descripción' es obligatorio.");
+      hasErrors = true;
+    }
+    
+    if (cantidadEntradaError) {
+      showToastError("El campo 'Cantidad de Entrada' es obligatorio y debe ser mayor a 0.");
+      hasErrors = true;
+    }
+    
+    if (marcaError) {
+      showToastError("El campo 'Marca' es obligatorio.");
+      hasErrors = true;
+    }
+  
+    // Verificar si hay errores acumulados
+    if (hasErrors) {
       setFormErrors((prevErrors) => ({
         ...prevErrors,
-        nombre: nombreError,
         codigo: codigoError,
+        nombre: nombreError,
         descripcion: descripcionError,
-        cantidadEntrada:cantidadEntradaError,
+        cantidadEntrada: cantidadEntradaError,
         marca: marcaError,
       }));
-      showToastError("Por favor, corrige los errores antes de agregar.");
       return;
     }
-    if (!nombre  || !codigo || !descripcion || !cantidadEntrada || !marca ||!UnidadMedidaId || !SubcategoriaId || !EstadoId) {
+  
+    // Verificar si todos los campos requeridos están completos
+    if (
+      !nombre ||
+      !codigo ||
+      !descripcion ||
+      !cantidadEntrada ||
+      !marca ||
+      !UnidadMedidaId ||
+      !SubcategoriaId ||
+      !EstadoId
+    ) {
       showToastError("Todos los campos son obligatorios.");
       return;
     }
+  
     setLoading(true);
+  
     try {
       const token = document.cookie.replace(
-        /(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/,"$1"
+        /(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/,
+        "$1"
       );
+  
       const response = await api.post("/producto", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+  
       if (response.status === 201) {
-        toast.success("producto agregado exitosamente", {
+        toast.success("Producto agregado exitosamente", {
           position: "top-right",
           autoClose: 2000,
           hideProgressBar: false,
@@ -188,7 +243,7 @@ const AddProductModal = ({ isOpen, onClose, product }) => {
         }, 2000);
       } else {
         showToastError(
-          "Ocurrió un error!, por favor intenta con un documento o correo diferente."
+          "Ocurrió un error, por favor intenta con un documento o correo diferente."
         );
       }
     } catch (error) {
@@ -199,7 +254,7 @@ const AddProductModal = ({ isOpen, onClose, product }) => {
       setLoading(false);
     }
   };
-
+  
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center bg-fondo bg-opacity-50 ${
@@ -227,7 +282,10 @@ const AddProductModal = ({ isOpen, onClose, product }) => {
                     type="text"
                     name="nombre"
                     value={formData.nombre}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      const valorEnMayusculas = e.target.value.toUpperCase();
+                      handleInputChange({ target: { name: "nombre", value: valorEnMayusculas } });
+                    }}
                     onKeyPress={(e) => {
                       if (/\d/.test(e.key)) {
                         e.preventDefault();
@@ -273,9 +331,10 @@ const AddProductModal = ({ isOpen, onClose, product }) => {
                   )}
                 </div>
 
-
                 <div className="flex flex-col">
-                  <label className="mb-1 font-bold text-sm">Descripcion *</label>
+                  <label className="mb-1 font-bold text-sm">
+                    Descripcion *
+                  </label>
                   <input
                     className="bg-grisClaro text-sm rounded-lg px-2 h-8"
                     type="text"
@@ -291,7 +350,9 @@ const AddProductModal = ({ isOpen, onClose, product }) => {
                 </div>
 
                 <div className="flex flex-col">
-                  <label className="mb-1 font-bold text-sm">Cantidad Entrada *</label>
+                  <label className="mb-1 font-bold text-sm">
+                    Cantidad Entrada *
+                  </label>
                   <input
                     className="bg-grisClaro text-sm rounded-lg px-2 h-8"
                     type="text"
@@ -307,7 +368,9 @@ const AddProductModal = ({ isOpen, onClose, product }) => {
                 </div>
 
                 <div className="flex flex-col">
-                  <label className="mb-1 font-bold text-sm">Subcategoría *</label>
+                  <label className="mb-1 font-bold text-sm">
+                    Subcategoría *
+                  </label>
                   <select
                     className="bg-grisClaro text-sm rounded-lg px-2 h-8"
                     name="SubcategoriaId"
@@ -324,7 +387,9 @@ const AddProductModal = ({ isOpen, onClose, product }) => {
                 </div>
 
                 <div className="flex flex-col">
-                  <label className="mb-1 font-bold text-sm">Unidad de Medida *</label>
+                  <label className="mb-1 font-bold text-sm">
+                    Unidad de Medida *
+                  </label>
                   <select
                     className="bg-grisClaro text-sm rounded-lg px-2 h-8"
                     name="UnidadMedidaId"
@@ -339,7 +404,6 @@ const AddProductModal = ({ isOpen, onClose, product }) => {
                     ))}
                   </select>
                 </div>
-
 
                 <div className="flex flex-col">
                   <label className="mb-1 font-bold text-sm">Estado *</label>

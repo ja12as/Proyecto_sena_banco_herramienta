@@ -45,16 +45,21 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
     const fetchsubcategorias = async () => {
       try {
         const response = await api.get("/subcategoria/estado");
-        setSubcategorias(response.data);
+        const filteredSubcategorias = response.data.filter(
+          (Categoria) => Categoria.CategoriaId === 2 
+        );
+        setSubcategorias(filteredSubcategorias);
       } catch (error) {
-        showToastError("Error al cargar subcategorías");
       }
     };
 
     const fetchEstados = async () => {
       try {
         const response = await api.get("/Estado");
-        setEstados(response.data);
+        const filteredEstados = response.data.filter(
+          (estado) => estado.id === 1 || estado.id === 2
+        );
+        setEstados(filteredEstados);
       } catch (error) {
         showToastError("Error al cargar los estados");
       }
@@ -71,7 +76,7 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
       if (!nameRegex.test(value) || /\d/.test(value)) {
         errorMessage = "El nombre no puede contener caracteres especiales.";
       }
-    } 
+    }
     return errorMessage;
   };
 
@@ -114,17 +119,29 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
   };
 
   const handleCreate = async () => {
-    const { nombre, codigo, marca, condicion, observaciones, EstadoId, SubcategoriaId } = formData;
-  
-    // Validar cada campo con mensajes de error personalizados
+    const {
+      nombre,
+      codigo,
+      marca,
+      condicion,
+      observaciones,
+      EstadoId,
+      SubcategoriaId,
+    } = formData;
+
     const codigoError = validateInput("codigo", codigo);
     const nombreError = validateInput("nombre", nombre);
     const condicionError = validateInput("condicion", condicion);
     const observacionesError = validateInput("observaciones", observaciones);
     const marcaError = validateInput("marca", marca);
-  
-    // Si hay errores en algún campo, mostramos el error correspondiente
-    if (codigoError || nombreError || condicionError || observacionesError || marcaError) {
+
+    if (
+      codigoError ||
+      nombreError ||
+      condicionError ||
+      observacionesError ||
+      marcaError
+    ) {
       setFormErrors({
         codigo: codigoError,
         nombre: nombreError,
@@ -132,7 +149,7 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
         observaciones: observacionesError,
         marca: marcaError,
       });
-  
+
       if (codigoError) {
         showToastError("El código es inválido o está vacío.");
       }
@@ -148,11 +165,18 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
       if (marcaError) {
         showToastError("La marca es obligatoria.");
       }
-      return; // Detener el proceso si hay errores
+      return;
     }
-  
-    // Verificar que los campos obligatorios estén completos
-    if (!codigo || !nombre || !condicion || !observaciones || !marca || !EstadoId || !SubcategoriaId) {
+
+    if (
+      !codigo ||
+      !nombre ||
+      !condicion ||
+      !observaciones ||
+      !marca ||
+      !EstadoId ||
+      !SubcategoriaId
+    ) {
       if (!codigo) {
         showToastError("El campo 'Código' es obligatorio.");
       }
@@ -174,10 +198,9 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
       if (!SubcategoriaId) {
         showToastError("El campo 'Subcategoría' es obligatorio.");
       }
-      return; // Detener si falta algún campo
+      return;
     }
-  
-    // Si todos los campos son válidos, procedemos con la creación
+
     setLoading(true);
     try {
       const token = document.cookie.replace(
@@ -189,7 +212,7 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       if (response.status === 201) {
         toast.success("Herramienta agregada exitosamente", {
           position: "top-right",
@@ -201,17 +224,22 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
           progress: undefined,
         });
         resetForm();
-        setTimeout(() => {}, 2000);
+        setTimeout(() => {
+          onClose(response.data);
+        }, 2000);
       } else {
-        showToastError("Error al agregar la herramienta. Intenta con un código o nombre diferente.");
+        showToastError(
+          "Error al agregar la herramienta. Intenta con un código o nombre diferente."
+        );
       }
     } catch (error) {
-      showToastError("Ocurrió un error al agregar la herramienta. Verifica los datos e intenta nuevamente.");
+      showToastError(
+        "Ocurrió un error al agregar la herramienta. Verifica los datos e intenta nuevamente."
+      );
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
     <div
@@ -233,8 +261,6 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
                   Registro Herramienta
                 </h6>
 
-
-
                 <div className="flex flex-col">
                   <label className="mb-1 font-bold text-sm">Nombre *</label>
                   <input
@@ -242,7 +268,10 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
                     type="text"
                     name="nombre"
                     value={formData.nombre}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      const valorEnMayusculas = e.target.value.toUpperCase();
+                      handleInputChange({ target: { name: "nombre", value: valorEnMayusculas } });
+                    }}
                     onKeyPress={(e) => {
                       if (/\d/.test(e.key)) {
                         e.preventDefault();
@@ -288,7 +317,6 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
                   )}
                 </div>
 
-
                 <div className="flex flex-col">
                   <label className="mb-1 font-bold text-sm">Condicion *</label>
                   <select
@@ -297,7 +325,7 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
                     value={formData.condicion}
                     onChange={handleInputChange}
                   >
-                    <option value="" >Seleccione una Condicion</option>
+                    <option value="">Seleccione una Condicion</option>
                     <option value="BUENO">BUENO</option>
                     <option value="REGULAR">REGULAR</option>
                     <option value="MALO">MALO</option>
@@ -305,7 +333,9 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
                 </div>
 
                 <div className="flex flex-col">
-                  <label className="mb-1 font-bold text-sm">Observaciones *</label>
+                  <label className="mb-1 font-bold text-sm">
+                    Observaciones *
+                  </label>
                   <input
                     className="bg-grisClaro text-sm rounded-lg px-2 h-8"
                     type="text"
@@ -320,9 +350,10 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
                   )}
                 </div>
 
-
                 <div className="flex flex-col">
-                  <label className="mb-1 font-bold text-sm">Subcategoría *</label>
+                  <label className="mb-1 font-bold text-sm">
+                    Subcategoría *
+                  </label>
                   <select
                     className="bg-grisClaro text-sm rounded-lg px-2 h-8"
                     name="SubcategoriaId"
@@ -337,7 +368,6 @@ const AddHerramientaModal = ({ isOpen, onClose, herramienta }) => {
                     ))}
                   </select>
                 </div>
-
 
                 <div className="flex flex-col">
                   <label className="mb-1 font-bold text-sm">Estado *</label>

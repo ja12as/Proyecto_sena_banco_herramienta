@@ -34,7 +34,7 @@ const NewProgressCircle2 = ({ progress, size = 70 }) => {
             cy={size / 2}
             strokeWidth="10"
             strokeDasharray={circumference}
-            strokeDashoffset="0" // Todo consumido inicialmente
+            strokeDashoffset="0" 
           />
           <circle
             stroke="#4caf50" 

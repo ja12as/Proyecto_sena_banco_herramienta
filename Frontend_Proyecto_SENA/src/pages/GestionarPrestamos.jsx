@@ -5,21 +5,26 @@ import { api } from "../api/token";
 import "react-toastify/dist/ReactToastify.css";
 import fondo from "/logoSena.png";
 import siga from "/Siga.png";
+import * as XLSX from "xlsx";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import SidebarCoord from "../components/SidebarCoord";
+import Sidebar from './../components/Sidebar';
 import Home from "../components/Home";
 import TablaPrestamosGestion from "../components/TablaPrestamosGestion";
 import FirmaPrestamosEntrega from "../components/FirmaPrestamoEntrega";
-
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import TablaPrestamosDevolucion from './../components/TablaPrestamoDevolucion';
 
 const GestionarPrestamos = () => {
-    const [sidebarToggleCoord, setsidebarToggleCoord] = useState(false);
+    const [sidebarToggle, setsidebarToggle] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
     const { prestamoId } = location.state || {};
-    const [pedidoData, setPedidoData] = useState(null);
+    const [prestamoData, setprestamoData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [productosSalida, setProductosSalida] = useState([]);
+    const [dummyState, setDummyState] = useState(false);
+    const [productosDevolucion, setProductosDevolucion] = useState([]); // Nuevo estado
     const [formData, setFormData] = useState({
         fechaPrestamos: "",
         servidorAsignado: "",
@@ -34,6 +39,12 @@ const GestionarPrestamos = () => {
         correo: "",
         codigoSena: "",
     });
+    const [firmaAdjunta, setFirmaAdjunta] = useState(false);
+
+    const handleFirmaChange = (isFirmaAdjunta, file) => {
+        setFirmaAdjunta(isFirmaAdjunta);
+        setFirmaImagen(file);
+    };
 
     const [accordionStates, setAccordionStates] = useState({
         datos: false,
@@ -48,18 +59,6 @@ const GestionarPrestamos = () => {
         }));
     };
 
-    const showToastError = (message) => {
-        toast.error(message, {
-        position: "top-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        });
-    };
-
     useEffect(() => {
         const fetchData = async () => {
         if (prestamoId) {
@@ -70,15 +69,18 @@ const GestionarPrestamos = () => {
             const pedidoFormatted = {
                 id: data.id,
                 fechaPrestamos: data.fechaPrestamos,
+                firmaPrestamos: data.firmaPrestamos,
                 codigoFicha: data.codigoFicha,
                 jefeOficina: data.jefeOficina,
                 cedulaJefeOficina: data.cedulaJefeOficina,
                 servidorAsignado: data.servidorAsignado,
                 cedulaServidor: data.cedulaServidor,
                 correo: data.correo,
-                EstadoId: data.EstadoId, 
+                EstadoId: data.EstadoId,
+                Estado: data.Estado,
+                Herramienta: data.Herramienta,
             };
-            setPedidoData(pedidoFormatted);
+            setprestamoData(pedidoFormatted);
             setFormData({
                 fecha: formatDateForInput(data.fechaPrestamos),
                 codigoFicha: data.codigoFicha,
@@ -88,9 +90,10 @@ const GestionarPrestamos = () => {
                 servidorAsignado: data.servidorAsignado,
                 cedulaServidor: data.cedulaServidor,
                 correo: data.correo,
+                Herramienta: data.Herramienta,
             });
             } catch (error) {
-            console.error("Error fetching pedido data:", error);
+            console.error("Error fetching préstamo data:", error);
             }
         }
         setLoading(false);
@@ -98,6 +101,12 @@ const GestionarPrestamos = () => {
 
         fetchData();
     }, [prestamoId]);
+
+    useEffect(() => {
+        if (prestamoData) {
+        setDummyState((prev) => !prev);
+        }
+    }, [prestamoData]);
 
     const formatDateForInput = (dateString) => {
         const date = new Date(dateString);
@@ -107,16 +116,77 @@ const GestionarPrestamos = () => {
         )}-${String(date.getDate()).padStart(2, "0")}`;
     };
 
-    const handlefechaEntregaChange = (index, prestamoId, fechaEntrega) => {
-        console.log("Producto ID:", prestamoId);
-        console.log("Cantidad Salida:", fechaEntrega);
+
+    const handleGestionarDevolucion = async () => {
+        try {
+        const response = await api.put(`/prestamos/${prestamoId}/devolver`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            productos: productosDevolucion,
+        });
+
+        if (response.status === 200) {
+            toast.success("Devolución de préstamo gestionada correctamente.");
+            fetchherramientasDelPedido();
+            navigate("/prestamos");
+        } else {
+            toast.error("Error al gestionar la devolución del préstamo.");
+        }
+        } catch (error) {
+        console.error("Error al devolver el Prestamo:", error);
+        toast.error("Error al devolver el Prestamo.", {
+            position: "top-right",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+        });
+        }
+    };
+
+    const handleDevolucionChange = (index, prestamoId, observacion, fechaDevolucion) => {
+        // Copia el array para manipularlo sin modificar el estado directamente
+        const updatedProductos = [...productosDevolucion];
     
-        const updatedProductos = [...productosSalida];
-    
+        // Verificar si el producto ya existe en la lista
         const productoIndex = updatedProductos.findIndex(
         (producto) => producto.prestamoId === prestamoId
         );
     
+        if (productoIndex >= 0) {
+        // Si el producto existe, actualiza la observación y fecha de devolución si están presentes
+        if (observacion && observacion.trim().length > 0) {
+            updatedProductos[productoIndex].observacion = observacion;
+            updatedProductos[productoIndex].fechaDevolucion = fechaDevolucion;
+        } else {
+            // Eliminar el producto si la observación está vacía
+            updatedProductos.splice(productoIndex, 1);
+        }
+        } else {
+        // Si el producto no está en la lista, agregarlo con la observación y la fecha de devolución
+        if (observacion && observacion.trim().length > 0) {
+            updatedProductos.push({ prestamoId, observacion, fechaDevolucion });
+        }
+        }
+    
+        // Actualizar el estado de productosDevolucion con la lista modificada
+        setProductosDevolucion(updatedProductos);
+    };
+    
+    
+
+
+
+    const handlefechaEntregaChange = (index, prestamoId, fechaEntrega) => {
+        const updatedProductos = [...productosSalida];
+
+        const productoIndex = updatedProductos.findIndex(
+        (producto) => producto.prestamoId === prestamoId
+        );
+
         if (productoIndex >= 0) {
         if (fechaEntrega > 0) {
             updatedProductos[productoIndex].fechaEntrega = fechaEntrega;
@@ -128,18 +198,13 @@ const GestionarPrestamos = () => {
             updatedProductos.push({ prestamoId: prestamoId, fechaEntrega });
         }
         }
-    
         setProductosSalida(updatedProductos);
-        console.log("Productos salida actualizados:", updatedProductos);
     };
-    
+
     const fetchherramientasDelPedido = async () => {
         try {
             const response = await api.get(`/prestamos/${prestamoId}/herramientas`);
             if (response.status === 200) {
-                console.log("Herramientas del pedido:", response.data);
-                // Si necesitas actualizar algún estado con las herramientas, puedes hacerlo aquí
-                // Por ejemplo: setHerramientas(response.data);
             } else {
                 console.error("Error al obtener las herramientas del pedido");
             }
@@ -148,7 +213,7 @@ const GestionarPrestamos = () => {
         }
     };
 
-    const handleGestionarPedido = async () => {
+    const handleGestionarPrestamo = async () => {
         try {
         const response = await api.put(`/prestamos/${prestamoId}/entrega`, {
             productos: productosSalida,
@@ -156,32 +221,170 @@ const GestionarPrestamos = () => {
 
         if (response.status === 200) {
             toast.success("Prestamo gestionado correctamente.");
-            fetchherramientasDelPedido(); 
+            fetchherramientasDelPedido();
             navigate("/prestamos");
         } else {
-            showToastError("Error al gestionar el Prestamo.");
+            toast.error("Error al gestionar el Prestamo.", {
+            position: "top-right",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            });
         }
         } catch (error) {
         console.error("Error al gestionar el Prestamo:", error);
-        showToastError("Error al gestionar el Prestamo.");
+        toast.error("Error al gestionar el Prestamo.", {
+            position: "top-right",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+        });
         }
     };
 
     const Navigate = () => {
         navigate("/prestamos");
-    }
+    };
+
+    const handleExportPDF = (prestamoData) => {
+        const doc = new jsPDF();
+
+        doc.setFontSize(16);
+        doc.text("Detalle del Préstamo", 14, 16);
+
+        doc.setFontSize(12); 
+        doc.text(`Código de Ficha: ${prestamoData.codigoFicha}`, 14, 30);
+        doc.text(`Jefe de Oficina: ${prestamoData.jefeOficina}`, 14, 40);
+        doc.text(`Cédula del Jefe: ${prestamoData.cedulaJefeOficina}`, 14, 50);
+        doc.text(`Servidor Asignado: ${prestamoData.servidorAsignado}`, 14, 60);
+        doc.text(`Cédula del Servidor: ${prestamoData.cedulaServidor}`, 14, 70);
+        doc.text(`Correo: ${prestamoData.correo}`, 14, 80);
+        doc.text(`Estado: ${prestamoData.Estado?.estadoName || "Desconocido"}`, 14, 90);
+        doc.text(
+            `Fecha de creación: ${new Date(
+            prestamoData.fechaPrestamos
+            ).toLocaleDateString()}`,
+            14,
+            100
+        );
+
+        if (prestamoData.Herramienta && prestamoData.Herramienta.length > 0) {
+            const Herramienta = prestamoData.Herramienta.map((herramienta) => [
+            herramienta.nombre,
+            herramienta.codigo,
+            herramienta.marca,
+            herramienta.condicion,
+            herramienta.PrestamoHerramienta?.observaciones || "N/A",
+            ]);
+    
+            doc.autoTable({
+            head: [
+                [
+                "Herramienta",
+                "Código",
+                "Descripción",
+                "Marca",
+                "Condición",
+                "Observaciones",
+                ],
+            ],
+            body: Herramienta,
+            startY: 110,
+            });
+        } else {
+            doc.text("No hay Herramienta asociados a este préstamo.", 14, 110);
+        }
+
+        doc.save(`Prestamo_${prestamoData.codigoFicha}.pdf`);
+    };
+
+    const handleExportClickPDF = () => {
+        if (prestamoData && prestamoData.codigoFicha) {
+        handleExportPDF(prestamoData);
+        } else {
+        console.error("Los datos del préstamo no están disponibles");
+        }
+    };
+
+
+    const handleExportExcel = (prestamoData) => {
+        if (!prestamoData || !prestamoData.codigoFicha) {
+        console.error("Los datos del préstamo no están disponibles");
+        return;
+        }
+    
+        const prestamoHeaders = [
+        "Código de Ficha",
+        "Jefe de Oficina",
+        "Cédula del Jefe",
+        "Servidor Asignado",
+        "Cédula del Servidor",
+        "Correo",
+        "Estado",
+        "Fecha de creación",
+        ];
+    
+        const prestamoValues = [
+        prestamoData.codigoFicha,
+        prestamoData.jefeOficina,
+        prestamoData.cedulaJefeOficina,
+        prestamoData.servidorAsignado,
+        prestamoData.cedulaServidor,
+        prestamoData.correo,
+        prestamoData.Estado?.estadoName || "Desconocido",
+        new Date(prestamoData.fechaPrestamos).toLocaleDateString(),
+        ];
+    
+        const herramientaHeaders = [
+        "Herramienta",
+        "Código",
+        "Marca",
+        "Condición",
+        "Observaciones",
+        ];
+    
+        const Herramienta =
+        prestamoData.Herramienta?.map((herramienta) => [
+            herramienta.nombre,
+            herramienta.codigo,
+            herramienta.marca,
+            herramienta.condicion,
+            herramienta.PrestamoHerramienta?.observaciones || "N/A",
+        ]) || [];
+    
+        const finalData = [
+        [...prestamoHeaders],
+        [...prestamoValues],
+        [], 
+        [...herramientaHeaders],
+        ...Herramienta,
+        ];
+    
+        const worksheet = XLSX.utils.aoa_to_sheet(finalData);
+    
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Préstamo");
+    
+        XLSX.writeFile(workbook, `Prestamo_${prestamoData.codigoFicha}.xlsx`);
+    };  
 
     return (
         <div className="flex min-h-screen">
-        <SidebarCoord sidebarToggleCoord={sidebarToggleCoord} />
+        <Sidebar sidebarToggle={sidebarToggle} />
         <div
             className={`flex flex-col flex-grow p-4  ${
-            sidebarToggleCoord ? "ml-64" : ""
+                sidebarToggle ? "ml-64" : ""
             } mt-16`}
-        >
+            >
             <Home
-            sidebarToggle={sidebarToggleCoord}
-            setSidebarToggle={setsidebarToggleCoord}
+                sidebarToggle={sidebarToggle}
+                setSidebarToggle={setsidebarToggle}
             />
             <div className="flex flex-col justify-center md:flex-row h-screen">
             <div className="hidden md:flex items-star justify-center md:w-3/4 mx-4">
@@ -422,22 +625,56 @@ const GestionarPrestamos = () => {
                     )}
                     </div>
 
-                    {/* PEDIDOS */}
+                    {/* PRÉSTAMOS*/}
                     <div className="flex flex-col rounded-lg w-full bg-white px-8 mx-auto border-2 border-black mb-4">
                     <button
-                        onClick={() => toggleAccordion("productos")}
+                        onClick={() => toggleAccordion("herramientas")}
                         className="font-bold text-lg py-2 flex justify-between items-center w-full"
                     >
-                        <span>Prestamo</span>
+                        <span>Préstamo</span>
                         <ExpandMoreIcon className="mr-2" />
                     </button>
 
-                    {accordionStates.productos && (
+                    {accordionStates.herramientas && (
                         <div className="flex flex-col rounded-lg w-full">
                         <div className="flex flex-row justify-center w-full mb-4">
+                            {prestamoData.EstadoId === 7 ? (
+                            <TablaPrestamosDevolucion 
+                                prestamoId={prestamoId}
+                            actualizarObservacion={handleDevolucionChange} 
+                            accordionStates={accordionStates}
+                            toggleAccordion={toggleAccordion}
+
+                            />
+                            ) : (
                             <TablaPrestamosGestion
+                                prestamoId={prestamoId}
+                                actualizarFechaEntrega={handlefechaEntregaChange}
+                                accordionStates={accordionStates}
+                                toggleAccordion={toggleAccordion}
+                            />
+                            )}
+                        </div>
+                        </div>
+                    )}
+                    </div>
+
+
+                    {/* Firmas */}
+                    <div className="flex flex-col rounded-lg w-full bg-white px-8 mx-auto border-2 border-black mb-4">
+                    <button
+                        onClick={() => toggleAccordion("firmas")}
+                        className="font-bold text-lg py-2 flex justify-between items-center w-full"
+                    >
+                        <span>Firmas</span>
+                        <ExpandMoreIcon className="mr-2" />
+                    </button>
+
+                    {accordionStates.firmas && (
+                        <div className="flex flex-col rounded-lg w-full">
+                        <div className="flex flex-row justify-between w-auto mb-4">
+                            <FirmaPrestamosEntrega
                             prestamoId={prestamoId}
-                            actualizarFechaEntrega={handlefechaEntregaChange} 
                             accordionStates={accordionStates}
                             toggleAccordion={toggleAccordion}
                             />
@@ -446,48 +683,58 @@ const GestionarPrestamos = () => {
                     )}
                     </div>
 
-                    {/* Firmas */}
-                    <div className="flex flex-col rounded-lg w-full bg-white px-8 mx-auto border-2 border-black mb-4">
-                        <button
-                            onClick={() => toggleAccordion("firmas")}
-                            className="font-bold text-lg py-2 flex justify-between items-center w-full"
-                        >
-                            <span>Firmas</span>
-                            <ExpandMoreIcon className="mr-2" />
-                        </button>
-
-                        {accordionStates.firmas && (
-                            <div className="flex flex-col rounded-lg w-full">
-                            <div className="flex flex-row justify-between w-auto mb-4">
-                                <FirmaPrestamosEntrega
-                                prestamoId={prestamoId}
-                                accordionStates={accordionStates}
-                                toggleAccordion={toggleAccordion}
-                                
-                                />
-                            </div>
-                            </div>
-                        )}
-                </div>
-
                     {/* Botones */}
                     <div className="flex justify-center items-center w-2/4 mt-10 mx-auto">
-                    <button className="btn-danger2 mx-4" onClick={Navigate}>
+                    <div>
+                        <button className="btn-danger2 mx-4" onClick={Navigate}>
                         Atrás
-                    </button>
-                    <button
-                        className="btn-black2"
-                        onClick={handleGestionarPedido}
-                        disabled={pedidoData && pedidoData.EstadoId === 7}                   
-                    >
-                        Gestionar Pedido
-                    </button>
+                        </button>
+                        <button
+                        className="btn-primary2 mr-2"
+                        onClick={handleExportClickPDF}
+                        >
+                        PDF
+                        </button>
                     </div>
+
+                    <div>
+                        <button
+                        className="btn-primary2 mr-2"
+                        onClick={() => handleExportExcel(prestamoData)}
+                        disabled={!prestamoData || !prestamoData.codigoFicha}
+                        >
+                        Excel
+                        </button>
+                    </div>
+
+
+                    {prestamoData &&
+                        prestamoData.EstadoId !== 8 &&
+                        prestamoData.EstadoId !== 7 &&
+                        prestamoData.EstadoId !== 5 && (
+                        <button
+                            className="btn-black2"
+                            onClick={handleGestionarPrestamo}
+                        >
+                            Gestionar Préstamo
+                        </button>
+                        )}
+                        {prestamoData && 
+                        prestamoData.EstadoId === 7 && (
+                        <button 
+                            className="btn-black2" 
+                            onClick={handleGestionarDevolucion}
+                        >
+                            Gestionar Devolución
+                        </button>
+                        )}
+                    </div>
+                
                 </div>
                 </div>
+            </div>
             </div>
             <ToastContainer />
-            </div>
         </div>
         </div>
     );

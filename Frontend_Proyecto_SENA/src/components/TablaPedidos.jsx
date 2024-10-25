@@ -6,12 +6,14 @@ const TablaPedidos = ({ accordionStates, handleProductChange, productos }) => {
 
   const handleInputChange = (index, event) => {
     const { name, value } = event.target;
+    const upperCaseValue = value.toUpperCase(); // Convertir a mayúsculas
+
     const updatedProducts = [...productos];
-    updatedProducts[index][name] = value;
+    updatedProducts[index][name] = upperCaseValue; // Asignar el valor en mayúsculas
     handleProductChange(updatedProducts);
 
     if (name === "nombre") {
-      buscarSugerenciasProducto(index, value);
+      buscarSugerenciasProducto(index, upperCaseValue); // Usar el valor en mayúsculas
     }
   };
 
@@ -108,7 +110,7 @@ const TablaPedidos = ({ accordionStates, handleProductChange, productos }) => {
                     </td>
                     <td className="border border-black px-4 py-2 relative">
                       <input
-                        className="w-full px-2 py-1 rounded"
+                        className="w-full px-2 py-1 rounded uppercase" // Agrega 'uppercase' aquí
                         name="nombre"
                         value={producto.nombre || ""}
                         onChange={(e) => handleInputChange(index, e)}
@@ -140,7 +142,6 @@ const TablaPedidos = ({ accordionStates, handleProductChange, productos }) => {
                           </div>
                         )}
                     </td>
-
                     <td className="border border-black px-4 py-2">
                       <input
                         type="number"

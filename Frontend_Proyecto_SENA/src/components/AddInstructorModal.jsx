@@ -38,14 +38,14 @@ const AddInstructorModal = ({ isOpen, onClose, instructor }) => {
       try {
         const response = await api.get("/Estado");
         const filteredEstados = response.data.filter(
-          estado => estado.id === 1 || estado.id === 2
+          (estado) => estado.id === 1 || estado.id === 2
         );
         setEstados(filteredEstados);
       } catch (error) {
         showToastError("Error al cargar los estados");
       }
     };
-  
+
     fetchStates();
   }, []);
 
@@ -67,22 +67,22 @@ const AddInstructorModal = ({ isOpen, onClose, instructor }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const processedValue =
-      name === "EstadoId" || name === "celular"
-        ? Number(value)
-        : value;
-
-    const errorMessage = validateInput(name, processedValue);
+    const processedValue = name === "nombre" ? value.toUpperCase() : value;
+    const finalValue =
+      name === "EstadoId" || name === "celular" ? Number(processedValue) : processedValue;
+    const errorMessage = validateInput(name, finalValue);
+    
     setFormErrors((prevErrors) => ({
       ...prevErrors,
       [name]: errorMessage,
     }));
-
+  
     setFormData((prevData) => ({
       ...prevData,
-      [name]: processedValue,
+      [name]: finalValue,
     }));
   };
+  
 
   const showToastError = (message) => {
     toast.error(message, {
@@ -119,7 +119,7 @@ const AddInstructorModal = ({ isOpen, onClose, instructor }) => {
       return;
     }
 
-    if (!nombre || !correo || !celular ||  !EstadoId) {
+    if (!nombre || !correo || !celular || !EstadoId) {
       showToastError("Todos los campos son obligatorios.");
       return;
     }
@@ -199,6 +199,7 @@ const AddInstructorModal = ({ isOpen, onClose, instructor }) => {
                         e.preventDefault();
                       }
                     }}
+                    style={{ textTransform: 'uppercase' }}
                   />
                   {formErrors.nombre && (
                     <div className="text-red-400 text-sm mt-1 px-2">
@@ -239,7 +240,6 @@ const AddInstructorModal = ({ isOpen, onClose, instructor }) => {
                     maxLength={10}
                   />
                 </div>
-
 
                 <div className="flex flex-col">
                   <label className="mb-1 font-bold text-sm">Estado *</label>

@@ -16,7 +16,7 @@ const DetallePermiso = conexion.define(
   },
   {
     tableName: "DetallePermisos",
-    timestamps: false,
+    timestamps: true,
   }
 );
 

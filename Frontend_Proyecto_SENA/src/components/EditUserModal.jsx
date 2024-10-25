@@ -4,7 +4,7 @@ import { api } from "../api/token";
 import { FaTimes } from "react-icons/fa";
 import { FormControlLabel, Checkbox } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 
 const EditUserModal = ({ isOpen, onClose, selectedUser }) => {
@@ -36,11 +36,18 @@ const EditUserModal = ({ isOpen, onClose, selectedUser }) => {
     if (isOpen) {
       setLoading(true);
       Promise.all([api.get("/Rol"), api.get("/Estado/1"), api.get("/Estado/2")])
-        .then(([rolesResponse, estado1Response, estado2Response, permisosResponse]) => {
-          setRoles(rolesResponse.data);
-          setEstados([estado1Response.data, estado2Response.data]);
-          setPermisos(permisosResponse.data);
-        })
+        .then(
+          ([
+            rolesResponse,
+            estado1Response,
+            estado2Response,
+            permisosResponse,
+          ]) => {
+            setRoles(rolesResponse.data);
+            setEstados([estado1Response.data, estado2Response.data]);
+            setPermisos(permisosResponse.data);
+          }
+        )
         .catch(() => {
           setLoading(false);
         });
@@ -52,20 +59,18 @@ const EditUserModal = ({ isOpen, onClose, selectedUser }) => {
       try {
         const response = await api.get("/permisos");
         setPermisos(response.data);
-      } catch (error) {
-      }
+      } catch (error) {}
     };
     fetchPermisos();
   }, []);
-
-
 
   const fetchUserDetails = async (userId) => {
     setLoading(true);
     try {
       const response = await api.get(`/usuarios/${userId}`);
       if (response.status === 200) {
-        const { nombre, Documento, correo, RolId, EstadoId, DetallePermisos } = response.data;
+        const { nombre, Documento, correo, RolId, EstadoId, DetallePermisos } =
+          response.data;
         setFormData({
           nombre: nombre || "",
           Documento: Documento || "",
@@ -76,7 +81,9 @@ const EditUserModal = ({ isOpen, onClose, selectedUser }) => {
         });
 
         if (DetallePermisos && DetallePermisos.length > 0) {
-          const permisoIds = DetallePermisos.map((detalle) => detalle.PermisoId);
+          const permisoIds = DetallePermisos.map(
+            (detalle) => detalle.PermisoId
+          );
           setSelectedPermisos(permisoIds);
         } else {
           setSelectedPermisos([]);
@@ -94,11 +101,13 @@ const EditUserModal = ({ isOpen, onClose, selectedUser }) => {
 
   useEffect(() => {
     if (user && permisos.length > 0 && formData.DetallePermisos.length > 0) {
-      const permisoIds = formData.DetallePermisos.map((detalle) => detalle.PermisoId);
+      const permisoIds = formData.DetallePermisos.map(
+        (detalle) => detalle.PermisoId
+      );
       setSelectedPermisos(permisoIds);
     }
   }, [permisos, formData.DetallePermisos]);
-  
+
   const validateInput = (name, value) => {
     let errorMessage = "";
     if (name === "nombre") {
@@ -117,14 +126,18 @@ const EditUserModal = ({ isOpen, onClose, selectedUser }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const errorMessage = validateInput(name, value);
+    // Convertir el nombre a mayúsculas si es el campo de nombre
+    const newValue = name === "nombre" ? value.toUpperCase() : value;
+    const errorMessage = validateInput(name, newValue);
+  
     setFormErrors((prevErrors) => ({
       ...prevErrors,
       [name]: errorMessage,
     }));
+  
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: newValue,
     }));
   };
 
@@ -135,12 +148,12 @@ const EditUserModal = ({ isOpen, onClose, selectedUser }) => {
       setSelectedPermisos(selectedPermisos.filter((id) => id !== permisoId));
     }
   };
-  
+
   const isAllSelected = selectedPermisos.length === permisos.length;
-  
+
   const isIndeterminate =
     selectedPermisos.length > 0 && selectedPermisos.length < permisos.length;
-  
+
   const handleSelectAllChange = (event) => {
     if (event.target.checked) {
       setSelectedPermisos(permisos.map((permiso) => permiso.id));
@@ -151,45 +164,46 @@ const EditUserModal = ({ isOpen, onClose, selectedUser }) => {
 
   const handleUpdate = async () => {
     const { nombre, correo, Documento, RolId, EstadoId } = formData;
-  
-    // Validar campos obligatorios
+
     if (!nombre || !correo || !Documento || !RolId || !EstadoId) {
-      toast.error("Todos los campos son obligatorios.", { position: "top-right" });
+      toast.error("Todos los campos son obligatorios.", {
+        position: "top-right",
+      });
       return;
     }
-  
-    // Validar permisos seleccionados
-    if (!selectedPermisos || selectedPermisos.length === 0) {
-      toast.error("Debe seleccionar al menos un permiso.", { position: "top-right" });
-      return;
-    }
-  
+
+    // if (!selectedPermisos || selectedPermisos.length === 0) {
+    //   toast.error("Debe seleccionar al menos un permiso.", {
+    //     position: "top-right",
+    //   });
+    //   return;
+    // }
+
     setLoading(true);
     try {
-      // Aquí se preparan los datos que serán enviados en la petición
+
       const updatedFormData = {
         ...formData,
-        permisos: selectedPermisos, // Enviar permisos en el campo 'permisos'
+        permisos: selectedPermisos,
       };
-  
-      // Hacemos la llamada API para actualizar el usuario
+
       const response = await api.put(
-        `/usuarios/${selectedUser.id}`, // Reemplaza user.id con el ID del usuario que estás editando
-        updatedFormData, 
+        `/usuarios/${selectedUser.id}`, 
+        updatedFormData,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
-  
+
       if (response.status === 200) {
         toast.success("Usuario actualizado exitosamente", {
           position: "top-right",
           autoClose: 2000,
         });
         setTimeout(() => {
-          onClose(response.data); 
+          onClose(response.data);
         }, 2000);
       } else {
         console.error("Error updating user profile:", response.data.message);
@@ -207,11 +221,11 @@ const EditUserModal = ({ isOpen, onClose, selectedUser }) => {
         toast.error("Error al actualizar la información del usuario.", {
           position: "top-right",
         });
-      }    
+      }
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
-  };  
+  };
 
   return (
     <div
@@ -249,6 +263,7 @@ const EditUserModal = ({ isOpen, onClose, selectedUser }) => {
                           e.preventDefault();
                         }
                       }}
+                      style={{ textTransform: 'uppercase' }}
                     />
                     {formErrors.nombre && (
                       <div className="text-red-400 text-sm mt-1 px-2 min-w-[200px]">
@@ -275,12 +290,10 @@ const EditUserModal = ({ isOpen, onClose, selectedUser }) => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex flex-row justify-between gap-x-4">
                   <div className="flex flex-col min-w-[200px] w-1/2">
-                    <label className="mb-1 font-bold text-sm">
-                      Correo *
-                    </label>
+                    <label className="mb-1 font-bold text-sm">Correo *</label>
                     <input
                       className="bg-grisClaro text-sm rounded-lg px-2 h-8"
                       type="text"
@@ -296,9 +309,7 @@ const EditUserModal = ({ isOpen, onClose, selectedUser }) => {
                   </div>
 
                   <div className="flex flex-col min-w-[200px] w-1/2">
-                    <label className="mb-1 font-bold text-sm">
-                      Rol *
-                    </label>
+                    <label className="mb-1 font-bold text-sm">Rol *</label>
                     <select
                       className="bg-grisClaro text-sm rounded-lg px-2 h-8"
                       name="RolId"
@@ -344,10 +355,10 @@ const EditUserModal = ({ isOpen, onClose, selectedUser }) => {
                     </select>
                   </div>
                 </div>
-                
+
                 <h6 className="font-bold text-center text-xl mb-2">Permisos</h6>
-                  <div>
-                    <div className="text-center">
+                <div>
+                  <div className="text-center">
                     {user.id === 1 ? (
                       <FormControlLabel
                         sx={{
@@ -365,44 +376,47 @@ const EditUserModal = ({ isOpen, onClose, selectedUser }) => {
                         }
                         label="Seleccionar todos"
                       />
-                      ) : (
-                        <p className="text-red-500 font-bold">
-                          Para editar permisos, comunicarse con el administrador.
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-4 gap-1">
-                      {permisos.map((permiso) => (
-                        <FormControlLabel
-                          key={permiso.id}
-                          control={
-                            <Checkbox
-                              checked={selectedPermisos.includes(permiso.id)}
-                              onChange={handleCheckboxChange(permiso.id)}
-                            />
-                          }
-                          label={permiso.nombrePermiso}
-                        />
-                      ))}
-                    </div>
+                    ) : (
+                      <p className="text-red-500 font-bold">
+                        Para editar permisos, comunicarse con el administrador.
+                      </p>
+                    )}
                   </div>
+
+                  <div className="grid grid-cols-4 gap-1">
+                    {permisos.map((permiso) => (
+                      <FormControlLabel
+                        key={permiso.id}
+                        control={
+                          <Checkbox
+                            checked={selectedPermisos.includes(permiso.id)}
+                            onChange={handleCheckboxChange(permiso.id)}
+                          />
+                        }
+                        label={permiso.nombrePermiso}
+                      />
+                    ))}
+                  </div>
+                </div>
 
                 <div className="sm:w-full md:w-full flex flex-col justify-end">
                   <div className="flex justify-center mt-4 mb-4 mx-2">
                     <button className="btn-danger2 mx-2" onClick={onClose}>
                       Cancelar
                     </button>
-                    <button className="btn-primary2 mx-2" onClick={handleUpdate}>
+                    <button
+                      className="btn-primary2 mx-2"
+                      onClick={handleUpdate}
+                    >
                       Actualizar
                     </button>
                   </div>
                 </div>
               </div>
-              </div>
             </div>
           </div>
         </div>
+      </div>
       <ToastContainer />
     </div>
   );

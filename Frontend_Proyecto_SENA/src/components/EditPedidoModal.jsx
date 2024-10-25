@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api/token";
 import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 
 const EditPedidoModal = ({ isOpen, onClose, pedido }) => {
@@ -67,7 +67,9 @@ const EditPedidoModal = ({ isOpen, onClose, pedido }) => {
         const response = await api.get("/instructores");
         setInstructores(response.data);
       } catch (error) {
-        toast.error("Error al cargar los instructores", { position: "top-right" });
+        toast.error("Error al cargar los instructores", {
+          position: "top-right",
+        });
       }
     };
 
@@ -155,7 +157,14 @@ const EditPedidoModal = ({ isOpen, onClose, pedido }) => {
       IDInstructor,
     } = formData;
 
-    if (!FechaPedido || !IDUsuario || !IDFicha || !CantidadSolicitada || !IDProducto || !IDInstructor) {
+    if (
+      !FechaPedido ||
+      !IDUsuario ||
+      !IDFicha ||
+      !CantidadSolicitada ||
+      !IDProducto ||
+      !IDInstructor
+    ) {
       toast.error("Todos los campos obligatorios deben ser completados.", {
         position: "top-right",
       });
@@ -215,16 +224,19 @@ const EditPedidoModal = ({ isOpen, onClose, pedido }) => {
       setLoading(false);
     }
   };
-  
-  // Función para verificar permisos
+
   const hasPermission = (permissionName) => {
     return user.DetallePermisos.some(
       (permiso) => permiso.Permiso.nombrePermiso === permissionName
     );
-  };  
+  };
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 ${isOpen ? "" : "hidden"}`}>
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 ${
+        isOpen ? "" : "hidden"
+      }`}
+    >
       <div className="bg-white rounded-lg shadow-lg sm:w-full md:w-1/4 mt-4 max-h-screen overflow-y-auto">
         <div className="flex justify-end p-1">
           <button onClick={onClose}>
@@ -235,9 +247,13 @@ const EditPedidoModal = ({ isOpen, onClose, pedido }) => {
           <div className="w-full md:w-3/4">
             <div className="font-inter ml-1">
               <div className="space-y-1 md:space-y-0.5 text-left">
-                <h6 className="font-bold text-center text-lg mb-1">Editar Pedido</h6>
+                <h6 className="font-bold text-center text-lg mb-1">
+                  Editar Pedido
+                </h6>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">Fecha Pedido *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    Fecha Pedido *
+                  </label>
                   <input
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     type="date"
@@ -247,7 +263,9 @@ const EditPedidoModal = ({ isOpen, onClose, pedido }) => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">Cantidad Entregada *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    Cantidad Entregada *
+                  </label>
                   <input
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     type="number"
@@ -256,11 +274,15 @@ const EditPedidoModal = ({ isOpen, onClose, pedido }) => {
                     onChange={handleInputChange}
                   />
                   {formErrors.CantidadEntregada && (
-                    <p className="text-red-500 text-xs">{formErrors.CantidadEntregada}</p>
+                    <p className="text-red-500 text-xs">
+                      {formErrors.CantidadEntregada}
+                    </p>
                   )}
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">ID Usuario *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    ID Usuario *
+                  </label>
                   <select
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     name="IDUsuario"
@@ -302,7 +324,9 @@ const EditPedidoModal = ({ isOpen, onClose, pedido }) => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">ID Producto *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    ID Producto *
+                  </label>
                   <select
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     name="IDProducto"
@@ -318,7 +342,9 @@ const EditPedidoModal = ({ isOpen, onClose, pedido }) => {
                   </select>
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">ID Instructor *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    ID Instructor *
+                  </label>
                   <select
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     name="IDInstructor"
@@ -334,7 +360,9 @@ const EditPedidoModal = ({ isOpen, onClose, pedido }) => {
                   </select>
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">Cantidad Solicitada *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    Cantidad Solicitada *
+                  </label>
                   <input
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     type="number"
@@ -344,7 +372,9 @@ const EditPedidoModal = ({ isOpen, onClose, pedido }) => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">Observaciones</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    Observaciones
+                  </label>
                   <textarea
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     name="observaciones"
@@ -355,7 +385,8 @@ const EditPedidoModal = ({ isOpen, onClose, pedido }) => {
                 <div className="flex justify-center mt-2 mb-2">
                   <button
                     className="btn-danger2 mx-2 text-xs py-2 px-4 rounded"
-                    onClick={onClose}>
+                    onClick={onClose}
+                  >
                     Cancelar
                   </button>
                   <button
@@ -375,4 +406,5 @@ const EditPedidoModal = ({ isOpen, onClose, pedido }) => {
     </div>
   );
 };
+
 export default EditPedidoModal;

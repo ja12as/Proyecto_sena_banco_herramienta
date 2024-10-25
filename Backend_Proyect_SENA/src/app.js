@@ -12,7 +12,6 @@ import recuperacionRouter from "./routes/Olvidarcontrasena.routes.js";
 import permisoRouter from "./routes/Permiso.routes.js";
 import FichaRouter from "./routes/Fichas.routes.js";
 import InstructorRouter from "./routes/Instructores.routes.js";
-import Relacion from "./routes/Relacion.routes.js";
 import CategoriaRouter from "./routes/Categoria.routes.js"
 import SubcategoriaRouter from "./routes/Subcategoria.routes.js";
 import ProductoRouter from "./routes/Producto.routes.js";
@@ -22,6 +21,9 @@ import PedidoRouter from "./routes/Pedidos.routes.js";
 import HerramientaRouter from "./routes/Herramienta.routes.js";
 import PrestamoRouter from "./routes/Prestamos.routes.js";
 import NotificacionRouter from "./routes/Notificaciones.routes.js";
+import HistorialRouter from "./routes/Historial.routes.js";
+import FichaInstructorRouter from "./routes/FichaInstructores.routes.js";
+import Reportesrouter from "./routes/reportes.routes.js";
 
 const app = express();
 
@@ -50,7 +52,6 @@ app.use(
   permisoRouter,
   FichaRouter,
   InstructorRouter,
-  Relacion,
   CategoriaRouter,
   SubcategoriaRouter,
   ProductoRouter,
@@ -59,8 +60,10 @@ app.use(
   PedidoRouter,
   HerramientaRouter,
   PrestamoRouter,
-  NotificacionRouter
-  
+  NotificacionRouter,
+  HistorialRouter,
+  FichaInstructorRouter,
+  Reportesrouter
 );
 
 export default app;

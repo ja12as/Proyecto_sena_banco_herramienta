@@ -7,12 +7,19 @@ import NewProgressCircle1 from "./NewProgressCircle1";
 const StatBox1 = ({ icon }) => {
   const [productoMasPedido, setProductoMasPedido] = useState(null);
   const [porcentajeDisponible, setPorcentajeDisponible] = useState(0);
+  const [cargando, setCargando] = useState(true); // Estado para manejar la carga
 
   useEffect(() => {
     const fetchPedidos = async () => {
       try {
         const response = await api.get("/pedido");
         const pedidos = response.data;
+
+        // Verifica si hay pedidos
+        if (pedidos.length === 0) {
+          setCargando(false); // Cambia a no cargando si no hay pedidos
+          return;
+        }
 
         const productoCantidadMap = {};
 
@@ -34,6 +41,8 @@ const StatBox1 = ({ icon }) => {
         setProductoMasPedido({ nombre: nombreProductoMasPedido, cantidad });
       } catch (error) {
         console.error("Error al obtener los pedidos", error);
+      } finally {
+        setCargando(false); // Cambia a no cargando después de la carga
       }
     };
 
@@ -56,6 +65,9 @@ const StatBox1 = ({ icon }) => {
           const porcentaje =
             (producto.cantidadActual / producto.cantidadEntrada) * 100;
           setPorcentajeDisponible(porcentaje);
+        } else {
+          // Si no se encuentra el producto
+          setPorcentajeDisponible(0);
         }
       } catch (error) {
         console.error("Error al obtener los productos", error);
@@ -65,8 +77,15 @@ const StatBox1 = ({ icon }) => {
     fetchProductoMasPedido();
   }, [productoMasPedido]);
 
-  if (!productoMasPedido) {
+  if (cargando) {
     return <Typography>Cargando...</Typography>;
+  }
+
+  // Si no hay producto más pedido, muestra un mensaje adecuado
+  if (!productoMasPedido) {
+    return (
+      <Typography>No hay productos más solicitados en este momento.</Typography>
+    );
   }
 
   return (

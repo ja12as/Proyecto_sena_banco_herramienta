@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaExclamationTriangle } from 'react-icons/fa'; // Importamos un ícono de advertencia
+import { FaExclamationTriangle } from 'react-icons/fa'; 
 
 const NoPermiso = () => {
   return (

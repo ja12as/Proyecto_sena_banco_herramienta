@@ -20,6 +20,7 @@ const AddPedidoModal = ({ isOpen, onClose, pedido }) => {
   const [estados, setEstados] = useState([]);
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     if (isOpen) {
       if (pedido) {
@@ -29,6 +30,7 @@ const AddPedidoModal = ({ isOpen, onClose, pedido }) => {
       }
     }
   }, [isOpen, pedido]);
+
   useEffect(() => {
     const fetchClientes = async () => {
       try {
@@ -58,6 +60,7 @@ const AddPedidoModal = ({ isOpen, onClose, pedido }) => {
     fetchProductos();
     fetchEstados();
   }, []);
+
   const fetchPedidoProfile = async () => {
     if (!pedido) return;
     setLoading(true);
@@ -82,16 +85,22 @@ const AddPedidoModal = ({ isOpen, onClose, pedido }) => {
       setLoading(false);
     }
   };
+
   const validarInput = (name, value) => {
     let errorMessage = "";
-    if (name === "fechaEntrega" && new Date(value) <= new Date(formData.fechaPedido)) {
-      errorMessage = "La fecha de entrega debe ser posterior a la fecha de pedido.";
+    if (
+      name === "fechaEntrega" &&
+      new Date(value) <= new Date(formData.fechaPedido)
+    ) {
+      errorMessage =
+        "La fecha de entrega debe ser posterior a la fecha de pedido.";
     }
     if (name === "cantidad" && value <= 0) {
       errorMessage = "La cantidad debe ser mayor que cero.";
     }
     return errorMessage;
   };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     const errorMessage = validarInput(name, value);
@@ -104,6 +113,7 @@ const AddPedidoModal = ({ isOpen, onClose, pedido }) => {
       [name]: value,
     }));
   };
+
   const showToastError = (mensaje) => {
     toast.error(mensaje, {
       position: "top-right",
@@ -115,6 +125,7 @@ const AddPedidoModal = ({ isOpen, onClose, pedido }) => {
       progress: undefined,
     });
   };
+
   const handleCreate = async () => {
     const {
       idCliente,
@@ -169,6 +180,7 @@ const AddPedidoModal = ({ isOpen, onClose, pedido }) => {
       setLoading(false);
     }
   };
+
   const resetForm = () => {
     setFormData({
       id: "",
@@ -182,6 +194,7 @@ const AddPedidoModal = ({ isOpen, onClose, pedido }) => {
     });
     setFormErrors({});
   };
+  
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center bg-fondo bg-opacity-50 ${
@@ -213,7 +226,9 @@ const AddPedidoModal = ({ isOpen, onClose, pedido }) => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">ID-Cliente *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    ID-Cliente *
+                  </label>
                   <select
                     className="bg-grisClaro text-xs rounded-lg px-2 py-1"
                     name="idCliente"
@@ -229,7 +244,9 @@ const AddPedidoModal = ({ isOpen, onClose, pedido }) => {
                   </select>
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">ID-Producto *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    ID-Producto *
+                  </label>
                   <select
                     className="bg-grisClaro text-xs rounded-lg px-2 py-1"
                     name="idProducto"
@@ -260,7 +277,9 @@ const AddPedidoModal = ({ isOpen, onClose, pedido }) => {
                   )}
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">Fecha Pedido *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    Fecha Pedido *
+                  </label>
                   <input
                     className="bg-grisClaro text-xs rounded-lg px-2 py-1"
                     type="date"
@@ -270,7 +289,9 @@ const AddPedidoModal = ({ isOpen, onClose, pedido }) => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">Fecha Entrega *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    Fecha Entrega *
+                  </label>
                   <input
                     className="bg-grisClaro text-xs rounded-lg px-2 py-1"
                     type="date"
@@ -301,7 +322,9 @@ const AddPedidoModal = ({ isOpen, onClose, pedido }) => {
                   </select>
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">Observaciones</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    Observaciones
+                  </label>
                   <textarea
                     className="bg-grisClaro text-xs rounded-lg px-2 py-1"
                     name="observaciones"
@@ -311,7 +334,10 @@ const AddPedidoModal = ({ isOpen, onClose, pedido }) => {
                 </div>
                 <div className="sm:w-full md:w-full flex flex-col justify-end">
                   <div className="flex justify-center mt-2 mb-2 mx-2">
-                    <button className="btn-danger2 mx-2 text-xs py-2 px-4 rounded"onClick={onClose}>
+                    <button
+                      className="btn-danger2 mx-2 text-xs py-2 px-4 rounded"
+                      onClick={onClose}
+                    >
                       Cancelar
                     </button>
                     <button

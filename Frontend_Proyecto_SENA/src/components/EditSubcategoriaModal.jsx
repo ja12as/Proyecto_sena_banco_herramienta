@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api/token";
 import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 
 const EditSubcategoriaModal = ({ isOpen, onClose, subcategoria }) => {
@@ -42,11 +42,15 @@ const EditSubcategoriaModal = ({ isOpen, onClose, subcategoria }) => {
     const fetchEstados = async () => {
       try {
         const response = await api.get("/Estado");
-        setEstados(response.data);
+        const filteredEstados = response.data.filter(
+          (estado) => estado.id === 1 || estado.id === 2
+        );
+        setEstados(filteredEstados);
       } catch (error) {
-        toast.error("Error al cargar los estados", { position: "top-right" });
+        showToastError("Error al cargar los estados");
       }
     };
+
     fetchEstados();
   }, []);
 
@@ -170,12 +174,11 @@ const EditSubcategoriaModal = ({ isOpen, onClose, subcategoria }) => {
     }
   };
 
-  // Función para verificar permisos
   const hasPermission = (permissionName) => {
     return user.DetallePermisos.some(
       (permiso) => permiso.Permiso.nombrePermiso === permissionName
     );
-  };  
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-fondo bg-opacity-50">

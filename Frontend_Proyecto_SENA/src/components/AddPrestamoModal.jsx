@@ -33,6 +33,7 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
       }
     }
   }, [isOpen, prestamo]);
+
   useEffect(() => {
     const fetchUsuarios = async () => {
       try {
@@ -71,6 +72,7 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
     fetchHerramientas();
     fetchEstados();
   }, []);
+
   const fetchPrestamoProfile = async () => {
     if (!prestamo) return;
     setLoading(true);
@@ -95,16 +97,22 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
       setLoading(false);
     }
   };
+
   const validarInput = (name, value) => {
     let errorMessage = "";
-    if (name === "fechaDevolucion" && new Date(value) <= new Date(formData.fechaPrestamo)) {
-      errorMessage = "La fecha de devolución debe ser posterior a la fecha de préstamo.";
+    if (
+      name === "fechaDevolucion" &&
+      new Date(value) <= new Date(formData.fechaPrestamo)
+    ) {
+      errorMessage =
+        "La fecha de devolución debe ser posterior a la fecha de préstamo.";
     }
     if (name === "cantidad" && value <= 0) {
       errorMessage = "La cantidad debe ser mayor que cero.";
     }
     return errorMessage;
   };
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     const errorMessage = validarInput(name, value);
@@ -117,6 +125,7 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
       [name]: value,
     }));
   };
+
   const showToastError = (mensaje) => {
     toast.error(mensaje, {
       position: "top-right",
@@ -128,6 +137,7 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
       progress: undefined,
     });
   };
+
   const handleCreate = async () => {
     const {
       id,
@@ -188,6 +198,7 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
       setLoading(false);
     }
   };
+
   const resetForm = () => {
     setFormData({
       id: "",
@@ -203,6 +214,7 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
     });
     setFormErrors({});
   };
+
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 ${
@@ -244,7 +256,9 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">ID-Usuario *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    ID-Usuario *
+                  </label>
                   <input
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     type="text"
@@ -254,7 +268,9 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">ID-Instructor *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    ID-Instructor *
+                  </label>
                   <input
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     type="text"
@@ -264,7 +280,9 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">ID-Herramienta *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    ID-Herramienta *
+                  </label>
                   <input
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     type="text"
@@ -283,11 +301,15 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
                     onChange={handleInputChange}
                   />
                   {formErrors.cantidad && (
-                    <p className="text-red-500 text-xs">{formErrors.cantidad}</p>
+                    <p className="text-red-500 text-xs">
+                      {formErrors.cantidad}
+                    </p>
                   )}
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">Fecha Préstamo *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    Fecha Préstamo *
+                  </label>
                   <input
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     type="date"
@@ -297,7 +319,9 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">Fecha Devolución *</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    Fecha Devolución *
+                  </label>
                   <input
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     type="date"
@@ -306,7 +330,9 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
                     onChange={handleInputChange}
                   />
                   {formErrors.fechaDevolucion && (
-                    <p className="text-red-500 text-xs">{formErrors.fechaDevolucion}</p>
+                    <p className="text-red-500 text-xs">
+                      {formErrors.fechaDevolucion}
+                    </p>
                   )}
                 </div>
                 <div className="flex flex-col">
@@ -326,7 +352,9 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
                   </select>
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-0.5 font-bold text-xs">Observaciones</label>
+                  <label className="mb-0.5 font-bold text-xs">
+                    Observaciones
+                  </label>
                   <textarea
                     className="bg-gray-200 text-xs rounded-lg px-2 py-1"
                     name="observaciones"
@@ -358,4 +386,5 @@ const AddPrestamoModal = ({ isOpen, onClose, prestamo }) => {
     </div>
   );
 };
+
 export default AddPrestamoModal;

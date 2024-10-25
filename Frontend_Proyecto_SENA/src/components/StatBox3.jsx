@@ -1,42 +1,72 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
-import { red, grey, green } from "@mui/material/colors";
+import { grey, green } from "@mui/material/colors";
 import { api } from "../api/token";
 import NewProgressCircle3 from "./NewProgressCircle3";
 
 const StatBox3 = ({ icon }) => {
-  const [productoMasAgotado, setProductoMasAgotado] = useState(null);
-  const [porcentajeDisponible, setPorcentajeDisponible] = useState(0);
+  const [herramientaMasUsada, setHerramientaMasUsada] = useState(null);
+  const [usoHerramienta, setUsoHerramienta] = useState(0);
+  const [totalPrestamos, setTotalPrestamos] = useState(0);
+  const [condicion, setCondicion] = useState("");
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchProductos = async () => {
+    const fetchPrestamos = async () => {
       try {
-        const response = await api.get("/producto");
-        const productos = response.data;
+        const response = await api.get("/prestamos");
+        const prestamos = response.data;
 
-        const productoConMenorDisponibilidad = productos.reduce((a, b) => {
-          const porcentajeA = (a.cantidadActual / a.cantidadEntrada) * 100;
-          const porcentajeB = (b.cantidadActual / b.cantidadEntrada) * 100;
-          return porcentajeA < porcentajeB ? a : b;
+        setTotalPrestamos(prestamos.length);
+
+        if (prestamos.length === 0) return;
+
+        const herramientasContador = {};
+
+        prestamos.forEach((prestamo) => {
+          prestamo.Herramienta.forEach((herramienta) => {
+            const nombreHerramienta = herramienta.nombre;
+            herramientasContador[nombreHerramienta] =
+              (herramientasContador[nombreHerramienta] || 0) + 1;
+          });
         });
 
-        const porcentaje =
-          (productoConMenorDisponibilidad.cantidadActual /
-            productoConMenorDisponibilidad.cantidadEntrada) *
-          100;
+        const herramientaMasUsada = Object.keys(herramientasContador).reduce(
+          (a, b) => (herramientasContador[a] > herramientasContador[b] ? a : b)
+        );
 
-        setProductoMasAgotado(productoConMenorDisponibilidad);
-        setPorcentajeDisponible(porcentaje);
+        setUsoHerramienta(herramientasContador[herramientaMasUsada] || 0);
+
+        const responseHerramienta = await api.get("/herramienta");
+        const herramientas = responseHerramienta.data;
+
+        const herramientaDetalles = herramientas.find(
+          (herramienta) => herramienta.nombre === herramientaMasUsada
+        );
+
+        setHerramientaMasUsada(herramientaMasUsada);
+        setCondicion(herramientaDetalles?.condicion?.toUpperCase() || "DESCONOCIDA");
       } catch (error) {
-        console.error("Error al obtener los productos", error);
+        console.error("Error al obtener los préstamos", error);
+        setError("No se pudo cargar la información de préstamos.");
       }
     };
 
-    fetchProductos();
+    fetchPrestamos();
   }, []);
 
-  if (!productoMasAgotado) {
-    return <Typography>Cargando...</Typography>;
+  if (error) {
+    return <Typography color="error">{error}</Typography>;
+  }
+
+  // Si no hay préstamos, mostrar un mensaje específico
+  if (totalPrestamos === 0) {
+    return <Typography>No hay herramientas prestadas en este momento.</Typography>;
+  }
+
+  // Si aún no se ha determinado la herramienta más usada y hay préstamos, muestra un mensaje de carga
+  if (!herramientaMasUsada) {
+    return <Typography>Cargando datos de herramientas...</Typography>;
   }
 
   return (
@@ -48,26 +78,25 @@ const StatBox3 = ({ icon }) => {
         <Box>
           {icon}
           <Typography variant="h6" fontWeight="bold" sx={{ color: grey[900] }}>
-            {productoMasAgotado.cantidadActual} /{" "}
-            {productoMasAgotado.cantidadEntrada}
+            {usoHerramienta} veces usada
           </Typography>
         </Box>
 
         <Box pr="20px">
-          <NewProgressCircle3 progress={porcentajeDisponible} />
+          <NewProgressCircle3 progress={100} condicion={condicion} />
         </Box>
       </Box>
 
       <Box display="flex" justifyContent="space-between" mt="2px">
-        <Typography variant="h" sx={{ color: red[500] }}>
-          {productoMasAgotado.nombre}
-        </Typography>
         <Typography variant="h" sx={{ color: green[500] }}>
-          {porcentajeDisponible.toFixed(0)}% disponible
+          {herramientaMasUsada}
+        </Typography>
+        <Typography variant="h" sx={{ color: grey[900] }}>
+          Condición: {condicion}
         </Typography>
       </Box>
     </Box>
   );
 };
 
-export default StatBox3
+export default StatBox3;

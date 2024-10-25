@@ -73,36 +73,42 @@ export const logout = async (req, res)=> {
     }
 };
 
-export const perfil = async ( req, res)=> {
-    try {
-        let accessToken = req.headers["authorization"];
-        if (!accessToken) {
-            return res.status(401).json({ message: "Acceso denegado" });
-        }
-
-        const token = accessToken.split(" ")[1];
-        const data = await verificarToken (token);
-
-        const consultarUsuario = await Usuario.findOne({
-            where:{
-                Documento: data.usuario.Documento,
-            },
-        });
-
-        if(!consultarUsuario){
-            return res.status(404).json({message: "Usuario no encontrado"});
-        }
-
-        const userInfo = {
-            ...consultarUsuario.dataValues,
-            id: consultarUsuario.id,
-            username: consultarUsuario.username,
-        };
-
-        res.status(200).json({perfil: userInfo});
-    } catch (error) {
-        res.status(500).json({
-            message: error.message,
-          });
+export const perfil = async (req, res) => {
+  try {
+    let accessToken = req.headers["authorization"];
+    if (!accessToken) {
+      return res.status(401).json({ message: "Acceso denegado" });
     }
+
+    const token = accessToken.split(" ")[1];
+    const data = await verificarToken(token);
+
+    const consultarUsuario = await Usuario.findOne({
+      where: {
+        Documento: data.usuario.Documento,
+      },
+      include: [
+        {
+          model: Rol,
+          as: "Rol", 
+          attributes: ["rolName"], 
+        },
+      ],
+    });
+
+    if (!consultarUsuario) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    const userInfo = {
+      ...consultarUsuario.dataValues,
+      rolName: consultarUsuario.Rol?.rolName, 
+    };
+
+    res.status(200).json({ perfil: userInfo });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
 };

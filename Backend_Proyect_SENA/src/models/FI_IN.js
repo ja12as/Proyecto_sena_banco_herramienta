@@ -1,42 +1,31 @@
 import { DataTypes } from "sequelize";
 import { conexion } from "../conexion.js";
-import Instructores from "./Instructores.js";
 import Fichas from "./Fichas.js";
+import Instructores from "./Instructores.js";
 import Usuario from "./Usuario.js";
 
-const InstructorFicha = conexion.define(
-  "InstructorFicha",
+const FichaInstructor = conexion.define(
+  "FichaInstructor",
   {
-    id: { 
+    id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
     semestre: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER,
       allowNull: false,
-      validate: {
-        notEmpty: {
-          msg: "El semestre no puede estar vacío",
-        },
-      },
     },
   },
   {
-    tableName: "InstructorFicha",
+    tableName: "FichasInstructores",
     timestamps: true,
-    indexes: [
-      {
-        fields: ["InstructorId", "FichaId", "semestre", "UsuarioId"],
-        unique: true,
-      },
-    ],
   }
 );
 
-InstructorFicha.belongsTo(Instructores, { foreignKey: "InstructorId" });
-InstructorFicha.belongsTo(Fichas, { foreignKey: "FichaId" });
-InstructorFicha.belongsTo(Usuario, { foreignKey: "UsuarioId" });
+FichaInstructor.belongsTo(Fichas, { foreignKey: "FichaId" });
+FichaInstructor.belongsTo(Instructores, { foreignKey: "InstructorId" });
+FichaInstructor.belongsTo(Usuario, { foreignKey: "UsuarioId" });
 
-export default InstructorFicha;
+export default FichaInstructor;
