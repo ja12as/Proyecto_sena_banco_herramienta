@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 // Parte de codigo donde se envia lo del correo
 export const enviarCorreo = (
-  text,
+  htmlContent,
   email,
   subject = "Sistema Inventario Mobiliario SENA"
 ) => {
@@ -26,7 +26,7 @@ export const enviarCorreo = (
         from: "inventariodelmobiliario@gmail.com",
         to: email,
         subject,
-        text,
+        html: htmlContent, 
       };
 
       const infoResponse = await transportData.sendMail(message);

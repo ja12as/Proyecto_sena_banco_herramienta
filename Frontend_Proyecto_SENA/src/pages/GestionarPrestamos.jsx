@@ -120,9 +120,6 @@ const GestionarPrestamos = () => {
     const handleGestionarDevolucion = async () => {
         try {
         const response = await api.put(`/prestamos/${prestamoId}/devolver`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
             productos: productosDevolucion,
         });
 
@@ -159,7 +156,7 @@ const GestionarPrestamos = () => {
         if (productoIndex >= 0) {
         // Si el producto existe, actualiza la observación y fecha de devolución si están presentes
         if (observacion && observacion.trim().length > 0) {
-            updatedProductos[productoIndex].observacion = observacion;
+            updatedProductos[productoIndex].observaciones = observacion;
             updatedProductos[productoIndex].fechaDevolucion = fechaDevolucion;
         } else {
             // Eliminar el producto si la observación está vacía
@@ -203,7 +200,7 @@ const GestionarPrestamos = () => {
 
     const fetchherramientasDelPedido = async () => {
         try {
-            const response = await api.get(`/prestamos/${prestamoId}/herramientas`);
+            const response = await api.get(`/prestamos/${prestamoId}`);
             if (response.status === 200) {
             } else {
                 console.error("Error al obtener las herramientas del pedido");

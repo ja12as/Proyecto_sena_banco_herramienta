@@ -30,38 +30,47 @@ export const postCrearCodigo = async (req, res) => {
         message: "Correo inválido, solo se aceptan correos de gmail",
       });
     }
-    /* 
-    const generarCodigo = () => {
-      const caracteres =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-      let codigo = "";
-      for (let i = 0; i < 6; i++) {
-        const indiceAleatorio = Math.floor(Math.random() * caracteres.length);
-        codigo += caracteres.charAt(indiceAleatorio);
-      }
-      return codigo;
-    }; */
+    if (!validarEmail(correo)) {
+      return res.status(400).json({
+        ok: false,
+        message: "Correo inválido, solo se aceptan correos de Gmail",
+      });
+    }
 
     const dataToken = generarCodigo();
+    const salt = bcrypt.genSaltSync(10);
+    const tokenEncrypt = bcrypt.hashSync(dataToken, salt);
 
-    const messageEmail = `Recuperación de cuenta.\n \n \t \t Este es tu código de Recuperacion:  ${dataToken} \n \n Si tienes problemas con el código de recuperación puedes intentar nuevamente. \n Continua sin funcionar, puedes contactar con el administrador.`;
+    const messageEmail = `
+      <h2 style="color: #333;">Recuperación de Cuenta</h2>
+      <p>Hola,</p>
+      <p>Has solicitado recuperar tu contraseña. Aquí tienes tu código de recuperación:</p>
+      <h3 style="color: #4CAF50; font-size: 24px;">${dataToken}</h3>
+      <p>Introduce este código en el sistema para completar el proceso.</p>
+      <p style="color: #555;">Si encuentras algún problema, puedes intentar nuevamente o contactarnos para recibir ayuda.</p>
+      <br/>
+      <p>Atentamente,</p>
+      <p><strong>Sistema de Inventario Mobiliario SENA</strong></p>
+    `;
 
     await enviarCorreo(
       messageEmail,
       correo,
-      "Recuperacion de contraseña de Sistema de inventario mobiliario sena"
+      "Recuperación de Contraseña - Sistema de Inventario Mobiliario SENA"
     );
 
-    const salt = bcrypt.genSaltSync(10);
-    const tokenEntrypt = bcrypt.hashSync(dataToken, salt);
-
-    res.cookie("recuperacion", tokenEntrypt).status(200).json({
-      message: "Revisa tu correo, recuperación enviada exitoso",
-      recuperacion: tokenEntrypt,
-    });
+    res.cookie("recuperacion", tokenEncrypt, { httpOnly: true, secure: true })
+      .status(200)
+      .json({
+        message: "Revisa tu correo, el código de recuperación se ha enviado exitosamente.",
+        recuperacion: tokenEncrypt,
+      });
   } catch (error) {
-    res.status(500).json(error);
+    res.status(500).json({
+      ok: false,
+      message: "Ocurrió un error al enviar el código de recuperación.",
+    });
   }
 };
 

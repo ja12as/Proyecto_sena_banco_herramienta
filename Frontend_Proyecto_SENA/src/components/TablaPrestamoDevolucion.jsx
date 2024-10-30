@@ -22,10 +22,10 @@ const TablaPrestamosDevolucion = ({ actualizarObservacion }) => {
                 toast.error("Error al cargar herramientas.");
             }
         };
-    
+
         fetchherramientas();
     }, []);
-    
+
     useEffect(() => {
         const fetchHerramientasDelPedido = async () => {
             if (!prestamoId) return;
@@ -72,6 +72,8 @@ const TablaPrestamosDevolucion = ({ actualizarObservacion }) => {
                     };
                 });
 
+                console.log("Herramientas formateadas:", herramientasFormatted); // Debug
+
                 setData(herramientasFormatted);
             } catch (err) {
                 console.error("Error fetching herramientas:", err);
@@ -86,8 +88,10 @@ const TablaPrestamosDevolucion = ({ actualizarObservacion }) => {
 
     const handleObservacionChange = (value, rowIndex) => {
         const updatedData = [...data];
-        updatedData[rowIndex].observacion = value;
+        updatedData[rowIndex].observaciones = value;
         setData(updatedData);
+
+        console.log("Observación actualizada:", value, "en la fila:", rowIndex); // Debug
 
         // Llama a actualizarObservacion con los datos actualizados de la devolución
         actualizarObservacion(
@@ -159,7 +163,7 @@ const TablaPrestamosDevolucion = ({ actualizarObservacion }) => {
             },
         },
         {
-            name: "observacion",
+            name: "observaciones",
             label: "OBSERVACIONES",
             options: {
                 customHeadRender: (columnMeta) => (

@@ -8,9 +8,10 @@ import pkg from "pg";
 const { Pool } = pkg;
 import { Op } from "sequelize";
 import Pedido from "./../../models/Pedido.js";
-import Herramienta from "./../../models/Herramientas.js";
+
 import PedidoProducto from "./../../models/PedidoProducto.js";
-import Historial from "../../models/Historial.js";
+import Herramienta from './../../models/Herramientas.js';
+import Historial from './../../models/Historial.js';
 
 const pool = new Pool({
   host: process.env.DB_HOST,
