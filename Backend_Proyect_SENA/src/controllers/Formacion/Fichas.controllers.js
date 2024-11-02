@@ -70,7 +70,7 @@ export const getAllFichas = async (req, res) => {
           attributes: ["estadoName"],
         },
       ],
-      order: [["createdAt", "DESC"]], // Cambiar a 'DESC' para ordenar por fecha de creación descendente
+      order: [["NumeroFicha", "ASC"],["createdAt", "DESC"]], // Cambiar a 'DESC' para ordenar por fecha de creación descendente
     });
 
     res.status(200).json(Fichas);
@@ -129,6 +129,7 @@ export const updateFicha = async (req, res) => {
       ficha.NumeroFicha = NumeroFicha;
     }
 
+    // Actualización del Estado
     let newEstadoName = oldEstadoName; 
     if (EstadoId) {
       const consultaestado = await Estado.findByPk(EstadoId);
@@ -137,6 +138,7 @@ export const updateFicha = async (req, res) => {
           .status(400)
           .json({ message: "El estado especificado no existe" });
       }
+      ficha.EstadoId = EstadoId; // Asignación correcta del EstadoId a la ficha
       newEstadoName = consultaestado.estadoName;
     }
 
@@ -184,3 +186,32 @@ export const updateFicha = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 }
+
+export const BusquedaFichas = async (req, res) => {
+  try {
+      const { query } = req.query;
+
+      if (!query || query.trim().length < 3) {
+          return res.status(400).json({ message: "Debe ingresar al menos 3 dígitos para la búsqueda." });
+      }
+
+      const fichas = await Ficha.findAll({
+          where: {
+              NumeroFicha: {
+                  [Op.like]: `${query}%`,
+              },
+              EstadoId: 1
+          },
+          attributes: ["id", "NumeroFicha", "Programa", "Jornada", "createdAt", "updatedAt"],
+      });
+
+      if (fichas.length === 0) {
+          return res.status(404).json({ message: "No se encontraron fichas." });
+      }
+
+      res.status(200).json(fichas);
+  } catch (error) {
+      console.error("Error al obtener sugerencias de fichas", error);
+      res.status(500).json({ message: "Error al obtener sugerencias de fichas" });
+  }
+};

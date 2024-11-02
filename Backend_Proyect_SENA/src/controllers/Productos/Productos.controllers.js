@@ -247,41 +247,40 @@ export const putProductos = async (req, res) => {
             producto.cantidadSalida = 0;
             producto.cantidadActual = cantidadEntrada;
         
-            // Inicializar estadoIdActual con el estado actual del producto
+
             let estadoIdActual = producto.EstadoId;
         
-            // Determinar el nuevo estado basado en la cantidad
+
             if (cantidadEntrada < 2) {
                 const estadoAgotado = await Estado.findOne({ where: { estadoName: "AGOTADO" } });
                 if (estadoAgotado) {
-                    estadoIdActual = estadoAgotado.id; // Actualizar el estado a AGOTADO si la cantidad es menor a 2
+                    estadoIdActual = estadoAgotado.id;
                 } else {
                     console.error('Estado AGOTADO no encontrado');
                 }
             } else {
                 const estadoActivo = await Estado.findOne({ where: { estadoName: "ACTIVO" } });
                 if (estadoActivo) {
-                    estadoIdActual = estadoActivo.id; // Actualizar el estado a ACTIVO si la cantidad es mayor o igual a 2
+                    estadoIdActual = estadoActivo.id; 
                 } else {
                     console.error('Estado ACTIVO no encontrado');
                 }
             }
         
-            producto.EstadoId = estadoIdActual; // Actualizar el EstadoId del producto
+            producto.EstadoId = estadoIdActual; 
         
-            // Verificar si hay otros productos con cantidad actual < 2 y actualizar su estado a AGOTADO
             const productosAgotados = await Producto.findAll({
                 where: {
                     cantidadActual: {
                         [Op.lt]: 2,
                     },
                     EstadoId: {
-                        [Op.ne]: estadoIdActual, // No modificar el estado del producto que acabamos de actualizar
+                        [Op.ne]: estadoIdActual, 
                     },
                 },
             });
         
-            // Actualizar el estado de los productos encontrados a AGOTADO
+
             if (productosAgotados.length > 0) {
                 const estadoAgotado = await Estado.findOne({ where: { estadoName: "AGOTADO" } });
                 if (estadoAgotado) {

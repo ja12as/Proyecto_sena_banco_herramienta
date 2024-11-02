@@ -32,7 +32,7 @@ const ConsumoDevolutivoGeneral = () => {
         },
       });
       const subcategoriasCategoria3 = subcategoriaResponse.data
-        .filter((subcategoria) => subcategoria.CategoriaId === 3)
+        .filter((subcategoria) => subcategoria.CategoriaId === 2)
         .map((subcategoria) => subcategoria.id);
       const herramientaResponse = await api.get("/herramienta", {
         headers: {

@@ -328,3 +328,33 @@ export const Putusuario = async (req, res) => {
     });
   }
 }
+
+
+
+
+export const BusquedaCoordinador = async (req, res) => {
+    try {
+      const consultarusuario = await Usuario.findAll({
+        where: {
+          RolId: 3,
+          EstadoId: 1
+        },
+        attributes: null,
+        include: [
+          {
+            model: Rol,
+            attributes: ["rolName"],
+          },
+          {
+            model: Estado,
+            attributes: ["estadoName"],
+          },
+        ],
+        order: [["nombre", "ASC"], ["createdAt", "DESC"]], 
+      });
+  
+      res.status(200).json(consultarusuario);
+    } catch (error) {
+      res.status(500).json(error.message);
+    }
+};

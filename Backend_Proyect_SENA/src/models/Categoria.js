@@ -37,8 +37,8 @@ const Categoria = conexion.define(
 const datosCategoria = [
   { categoriaName: "CONSUMO CONTROLADO SUBDIRECCION", EstadoId: 1 },
   { categoriaName: "CONSUMO DEVOLUTIVO SUBDIRECCION", EstadoId: 1 },
-  { categoriaName: "CONSUMO DEVOLUTIVO GENERAL", EstadoId: 1 },
   { categoriaName: "CONSUMO CONTROLADO GENERAL", EstadoId: 1 },
+  { categoriaName: "CONSUMO DEVOLUTIVO GENERAL", EstadoId: 1 },
 ];
 
 const guardarCAtegorias = async () => {

@@ -2,6 +2,7 @@
 import { DataTypes } from "sequelize";
 import { conexion } from "../conexion.js";
 import Estado from "./Estado.js"; // Importa el modelo de Estado
+import Usuario from "./Usuario.js";
 
 // Modelo de la tabla Prestamos
 const Prestamo = conexion.define(
@@ -29,12 +30,21 @@ const Prestamo = conexion.define(
       },
     },
     jefeOficina: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,  // Cambiado a INTEGER para reflejar la FK al ID de Usuario
       allowNull: false,
+      references: {
+        model: Usuario,
+        key: "id",
+      },
     },
     cedulaJefeOficina: {
       type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        notEmpty: {
+          msg: "La cédula del jefe de oficina no puede estar vacía",
+        },
+      },
     },
     servidorAsignado: {
       type: DataTypes.STRING,
@@ -74,5 +84,6 @@ const Prestamo = conexion.define(
 
 // Relación con el modelo Estado
 Prestamo.belongsTo(Estado, { foreignKey: "EstadoId" });
-
+Prestamo.belongsTo(Usuario, { foreignKey: "jefeOficina", as: "coordinador" });
+Usuario.hasMany(Prestamo, { foreignKey: "jefeOficina", as: "prestamos" });
 export default Prestamo;

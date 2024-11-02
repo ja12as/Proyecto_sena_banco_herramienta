@@ -52,7 +52,7 @@ const AutorizarPrestamos = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/prestamos");
+      const response = await api.get("/prestamo");
       const data = response.data;
 
       const prestamoFormatted = data.map((prestamo) => ({

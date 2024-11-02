@@ -47,7 +47,7 @@ const AddProductSubModal = ({ isOpen, onClose, product }) => {
         try {
             const response = await api.get("/subcategoria/estado");
             const filteredSubcategorias = response.data.filter(
-            (Categoria) => Categoria.CategoriaId === 4
+            (Categoria) => Categoria.CategoriaId === 3
             );
             setSubcategorias(filteredSubcategorias);
         } catch (error) {

@@ -35,7 +35,7 @@ const ConsumoControladoGeneral = () => {
         },
       });
       const subcategoriasCategoria4 = subcategoriaResponse.data
-        .filter((subcategoria) => subcategoria.CategoriaId === 4)
+        .filter((subcategoria) => subcategoria.CategoriaId === 2)
         .map((subcategoria) => subcategoria.id);
       const productoResponse = await api.get("/producto", {
         headers: {

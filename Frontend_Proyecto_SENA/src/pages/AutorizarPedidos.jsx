@@ -52,7 +52,7 @@ const AutorizarPedidos = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/pedido");
+      const response = await api.get("/pedidos");
       const data = response.data;
 
       const pedidosFormatted = data.map((pedido) => ({
@@ -360,7 +360,7 @@ const AutorizarPedidos = () => {
         </div>
         <div
           className="flex-grow flex items-center justify-center text-center text-sm text-black 
-             border-black rounded-lg border-2 bg-orange-200 font-bold w-1/2 mx-auto mt-4 mb-4"
+              border-black rounded-lg border-2 bg-orange-200 font-bold w-1/2 mx-auto mt-4 mb-4"
         >
           <p>
             NOTA: Los pedidos que no se firmen, es decir, que permanezcan en

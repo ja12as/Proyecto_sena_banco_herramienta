@@ -71,7 +71,7 @@ const GestionarPrestamos = () => {
                 fechaPrestamos: data.fechaPrestamos,
                 firmaPrestamos: data.firmaPrestamos,
                 codigoFicha: data.codigoFicha,
-                jefeOficina: data.jefeOficina,
+                jefeOficina: data.coordinador?.nombre || 'Sin información', 
                 cedulaJefeOficina: data.cedulaJefeOficina,
                 servidorAsignado: data.servidorAsignado,
                 cedulaServidor: data.cedulaServidor,
@@ -85,7 +85,7 @@ const GestionarPrestamos = () => {
                 fecha: formatDateForInput(data.fechaPrestamos),
                 codigoFicha: data.codigoFicha,
                 area: data.area,
-                jefeOficina: data.jefeOficina,
+                jefeOficina: data.coordinador?.nombre || '', 
                 cedulaJefeOficina: data.cedulaJefeOficina,
                 servidorAsignado: data.servidorAsignado,
                 cedulaServidor: data.cedulaServidor,
@@ -549,14 +549,14 @@ const GestionarPrestamos = () => {
                                 Nombre de jefe de oficina o coordinador de área:*
                             </label>
                             <div className="flex flex-col">
-                                <input
-                                className=" border-b border-black text-xs text-center px-2 h-8"
-                                type="text"
-                                name="jefeOficina"
-                                value={formData.jefeOficina}
-                                readOnly
-                                />
-                            </div>
+                            <input
+                              className=" border-b border-black text-xs text-center px-2 h-8"
+                              type="text"
+                              name="jefeOficina"
+                              value={formData.jefeOficina}
+                              readOnly
+                            />
+                          </div>
                             </div>
 
                             <label className="mb-1 font-bold text-xs mt-2">

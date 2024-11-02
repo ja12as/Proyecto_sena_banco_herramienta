@@ -74,7 +74,7 @@ const GestionarPedidos = () => {
             id: data.id,
             createdAt: data.createdAt,
             codigoFicha: data.codigoFicha,
-            jefeOficina: data.jefeOficina,
+            jefeOficina: data.coordinador?.nombre || 'Sin información', 
             cedulaJefeOficina: data.cedulaJefeOficina,
             servidorAsignado: data.servidorAsignado,
             cedulaServidor: data.cedulaServidor,
@@ -90,7 +90,7 @@ const GestionarPedidos = () => {
             fecha: formatDateForInput(data.createdAt),
             codigoFicha: data.codigoFicha,
             area: data.area,
-            jefeOficina: data.jefeOficina,
+            jefeOficina: data.coordinador?.nombre || '', 
             cedulaJefeOficina: data.cedulaJefeOficina,
             servidorAsignado: data.servidorAsignado,
             cedulaServidor: data.cedulaServidor,
@@ -602,12 +602,12 @@ const GestionarPedidos = () => {
                     <div className="flex flex-col rounded-lg w-full">
                       <div className="flex flex-row justify-center w-full mb-4">
                       <TablaPedidosGestion
-  pedidoId={pedidoId}
-  actualizarCantidadSalida={handleCantidadSalidaChange} // Para actualizar la cantidad de salida
-  actualizarObservaciones={handleObservacionesChange}  // Necesitas agregar una función que maneje las observaciones
-  accordionStates={accordionStates}
-  toggleAccordion={toggleAccordion}
-/>
+                      pedidoId={pedidoId}
+                      actualizarCantidadSalida={handleCantidadSalidaChange}
+                      actualizarObservaciones={handleObservacionesChange}
+                      accordionStates={accordionStates}
+                      toggleAccordion={toggleAccordion}
+                    />
 
                       </div>
                     </div>

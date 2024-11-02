@@ -1,15 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
+import SidebarCoord from "../components/SidebarCoord";
 import Home from "../components/Home";
 import { FaFileExcel, FaFilePdf } from "react-icons/fa";
-import axios from "axios";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { api } from "../api/token";
 
 const Reportes = () => {
   const [sidebarToggle, setSidebarToggle] = useState(false);
+  const [sidebarToggleCoord, setSidebarToggleCoord] = useState(false); 
+  const [userRole, setUserRole] = useState(""); 
   const [showTable, setShowTable] = useState(false);
+
+  const fetchUserRole = async () => {
+    try {
+      const response = await api.get("/perfil"); 
+      const { perfil } = response.data; 
+      const { RolId } = perfil; 
+  
+      if (RolId === 3) {
+        setUserRole("COORDINADOR");
+      } else {
+        setUserRole("OTRO_ROL"); 
+      }
+    } catch (error) {
+      console.error("Error al obtener el rol del usuario:", error);
+      toast.error("Error al obtener el rol del usuario", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+  };
+  
+  useEffect(() => {
+    fetchUserRole(); 
+  }, []);
 
   const descargarExcel = async (ruta) => {
     try {
@@ -288,15 +318,26 @@ const Reportes = () => {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar sidebarToggle={sidebarToggle} />
+      {userRole === "COORDINADOR" ? (
+        <SidebarCoord sidebarToggleCoord={sidebarToggleCoord} />
+      ) : (
+        <Sidebar sidebarToggle={sidebarToggle} />
+      )}
+
       <div
         className={`flex flex-col flex-grow p-6 bg-gray-100 ${
-          sidebarToggle ? "ml-64" : ""
+          userRole === "COORDINADOR"
+            ? sidebarToggleCoord
+              ? "ml-64"
+              : ""
+            : sidebarToggle
+            ? "ml-64"
+            : ""
         } mt-16`}
       >
         <Home
-          sidebarToggle={sidebarToggle}
-          setSidebarToggle={setSidebarToggle}
+          sidebarToggle={userRole === "COORDINADOR" ? sidebarToggleCoord : sidebarToggle}
+          setSidebarToggle={userRole === "COORDINADOR" ? setSidebarToggleCoord : setSidebarToggle}
         />
 
         <div className="flex-grow flex items-center justify-center">

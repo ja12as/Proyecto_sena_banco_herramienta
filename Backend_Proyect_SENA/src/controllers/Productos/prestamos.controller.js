@@ -1,5 +1,4 @@
-import fs from "fs";
-import path from "path";
+
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { Op, ValidationError } from "sequelize";
@@ -11,6 +10,7 @@ import cronJob from "node-cron";
 import nodemailer from "nodemailer";
 import { createNotification } from "../../helpers/Notificacion.helpers.js";
 import Historial from "../../models/Historial.js";
+import Usuario from "../../models/Usuario.js";
 
 
 
@@ -110,12 +110,24 @@ export const getAllPrestamos = async (req, res) => {
             attributes: ["observaciones",],
           },
         },
-        { model: Estado },
+        {
+          model: Estado 
+        },
+        {
+          model: Usuario,
+          attributes: ["nombre"],
+          as: "coordinador", 
+        },
       ],
       order: [["createdAt", "DESC"]],
     });
 
-    return res.status(200).json(prestamos);
+    const result = prestamos.map((prestamo) => ({
+      ...prestamo.toJSON(), 
+      jefeOficina: prestamo.coordinador?.nombre || null, 
+    }));
+
+    return res.status(200).json(result);
   } catch (error) {
     console.error("Error al obtener los préstamos:", error);
     return res.status(500).json({ message: "Error al obtener los préstamos." });
@@ -138,6 +150,11 @@ export const getPrestamo = async (req, res) => {
           },
         },
         { model: Estado },
+        {
+          model: Usuario,
+          attributes: ["nombre"], 
+          as: "coordinador", 
+        },
       ],
     });
 
@@ -145,10 +162,59 @@ export const getPrestamo = async (req, res) => {
       return res.status(404).json({ message: `Préstamo con id ${id} no encontrado.` });
     }
 
-    return res.status(200).json(prestamo);
+    const prestamoJSON = prestamo.toJSON();
+    prestamoJSON.jefeOficinaNombre = prestamo.coordinador?.nombre || null;
+    prestamoJSON.jefeOficina = undefined;
+    
+    return res.status(200).json(prestamoJSON);
   } catch (error) {
     console.error("Error al obtener el préstamo:", error);
     return res.status(500).json({ message: "Error al obtener el préstamo." });
+  }
+};
+
+export const getPrestamoPorCoordinador = async (req, res) => {
+  try {
+    const { id: UsuarioId, RolId } = req.usuario;
+
+    if (RolId !== 3) {
+      return res.status(403).json({ message: "Acceso denegado. Solo los coordinadores pueden ver estos prestamos." });
+    }
+
+    const prestamos = await Prestamo.findAll({
+      where: { jefeOficina: UsuarioId }, 
+      include: [
+        {
+          model: Herramienta,
+          through: {
+            model: PrestamoHerramienta,
+            attributes: ["observaciones"],
+          },
+        },
+        { model: Estado },
+        {
+          model: Usuario,
+          attributes: ["nombre"], 
+          as: "coordinador",
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    if (prestamos.length === 0) {
+      return res.status(404).json({ message: "No se encontraron prestamos para este coordinador." });
+    }
+
+    const result = prestamos.map((prestamo) => ({
+      ...prestamo.toJSON(), 
+      jefeOficina: prestamo.coordinador?.nombre || null,
+      jefeOficina: undefined,
+    }));
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Error al obtener los prestamos del coordinador:", error);
+    return res.status(500).json({ message: "Error al obtener los prestamos." });
   }
 };
 

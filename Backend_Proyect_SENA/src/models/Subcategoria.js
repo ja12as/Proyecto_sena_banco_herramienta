@@ -15,13 +15,13 @@ const Subcategoria = conexion.define(
     subcategoriaName: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
       validate: {
-        notEmpty: {
-          msg: "El nombre de la Subcategoria no puede estar vacío",
-        },
+          notEmpty: {
+              msg: "El nombre de la Subcategoria no puede estar vacío",
+          },
       },
-    },
+  },
+
   },
   {
     tableName: "Subcategorias",

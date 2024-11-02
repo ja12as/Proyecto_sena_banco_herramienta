@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 import { conexion } from "../conexion.js";
-import Producto from "./Producto.js";
 import Estado from "./Estado.js";
+import Usuario from "./Usuario.js";
 
 const Pedido = conexion.define(
   "Pedido",
@@ -31,12 +31,11 @@ const Pedido = conexion.define(
       },
     },
     jefeOficina: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,  // Cambiado a INTEGER para reflejar la FK al ID de Usuario
       allowNull: false,
-      validate: {
-        notEmpty: {
-          msg: "El nombre del jefe de oficina no puede estar vacío",
-        },
+      references: {
+        model: Usuario,
+        key: "id",
       },
     },
     cedulaJefeOficina: {
@@ -83,5 +82,7 @@ const Pedido = conexion.define(
 );
 
 Pedido.belongsTo(Estado, { foreignKey: "EstadoId" }); 
+Pedido.belongsTo(Usuario, { foreignKey: "jefeOficina", as: "coordinador" });
+Usuario.hasMany(Pedido, { foreignKey: "jefeOficina", as: "pedidos" });
 
 export default Pedido;

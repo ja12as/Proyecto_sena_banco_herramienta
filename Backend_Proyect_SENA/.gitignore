@@ -132,3 +132,13 @@ dist
 
 # firmas
 .uploads
+
+
+# Ignorar carpetas de archivos subidos
+
+# si ya estan las carpetas en el repositorio ejecutar estas dos linias
+# git rm -r --cached uploads/
+# git rm -r --cached upload/
+
+uploads/
+upload/

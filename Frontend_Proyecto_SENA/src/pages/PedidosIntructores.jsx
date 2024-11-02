@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect} from "react";
 import { api } from "../api/token";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
@@ -10,6 +10,9 @@ import { FaGripLinesVertical } from "react-icons/fa6";
 import TablaPedidos from "../components/TablaPedidos";
 
 const PedidosIntructores = () => {
+  const [coordinadores, setCoordinadores] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedFicha, setSelectedFicha] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   const [formData, setFormData] = useState({
     codigoFicha: "",
@@ -61,6 +64,44 @@ const PedidosIntructores = () => {
     });
   };
 
+  const handleSuggestionClick = (ficha) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      codigoFicha: ficha.NumeroFicha,
+      area: ficha.Programa,
+    }));
+    setSelectedFicha(ficha);
+    setSuggestions([]);
+  };
+  
+  useEffect(() => {
+    const fetchCoordinadores = async () => {
+      try {
+        const response = await api.get("/usuarios/busqueda");
+        if (response.status === 200) {
+          setCoordinadores(response.data);
+        }
+      } catch (error) {
+        console.error("Error al obtener coordinadores:", error);
+      }
+    };
+    fetchCoordinadores();
+  }, []);
+
+  const handleJefeSelection = (e) => {
+    const selectedId = parseInt(e.target.value, 10); // Convertir a entero
+    const selectedCoordinator = coordinadores.find(
+      (coordinator) => coordinator.id === selectedId
+    );
+  
+    setFormData({
+      ...formData,
+      jefeOficina: selectedId || "", // Guardar el ID del coordinador
+      cedulaJefeOficina: selectedCoordinator?.Documento || "", // Guardar el documento de la cédula
+    });
+  };
+  
+
   const validateInput = (name, value) => {
     let errorMessage = "";
 
@@ -81,14 +122,14 @@ const PedidosIntructores = () => {
     return errorMessage;
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = async (e) => { // Añadido async aquí
     const { name, value } = e.target;
-
+  
     // Convertir a mayúsculas si es necesario
     const upperCasedValue = ["area", "jefeOficina", "servidorAsignado"].includes(name)
       ? value.toUpperCase()
       : value;
-
+  
     const errorMessage = validateInput(name, upperCasedValue);
     setFormErrors((prevErrors) => ({
       ...prevErrors,
@@ -98,8 +139,23 @@ const PedidosIntructores = () => {
       ...prevData,
       [name]: upperCasedValue,
     }));
+  
+    // Buscar fichas cuando se escriben al menos 3 caracteres
+    if (name === "codigoFicha" && value.length >= 3) {
+      try {
+        const response = await api.get(`/Fichas/busqueda?query=${value}`);
+        if (response.status === 200) {
+          setSuggestions(response.data.slice(0, 5)); // Limita a 5 resultados
+        }
+      } catch (error) {
+        console.error("Error al obtener fichas:", error);
+        setSuggestions([]);
+      }
+    } else {
+      setSuggestions([]);
+    }
   };
-
+  
 
   const handleProductChange = (updatedProducts) => {
     setFormData({ ...formData, productos: updatedProducts });
@@ -333,23 +389,36 @@ const PedidosIntructores = () => {
               {accordionStates.datos && (
                 <div className="flex flex-col rounded-lg w-full">
                   <div className="flex flex-col md:flex-row justify-between gap-x-4">
-                    <div className="flex flex-row min-w-[200px] w-full md:w-2/3">
+                    <div className="flex flex-row min-w-[200px] w-full md:w-2/3 relative"> {/* Añadido 'relative' aquí */}
                       <label className="mb-1 font-bold text-xs mt-2">
                         Código de grupo o ficha de caracterización*
                       </label>
-                      <input
-                        className=" border-b border-black text-xs text-center h-8 w-20"
-                        type="text"
-                        name="codigoFicha"
-                        value={formData.codigoFicha}
-                        onChange={handleInputChange}
-                        onKeyPress={(e) => {
-                          if (!/[0-9]/.test(e.key)) {
-                            e.preventDefault();
-                          }
-                        }}
-                        maxLength={7}
-                      />
+                      <div className="flex items-center"> {/* Agrupamos el input y la lista de sugerencias */}
+                        <input
+                          className="border-b border-black text-xs text-center h-8 w-20"
+                          type="text"
+                          name="codigoFicha"
+                          value={formData.codigoFicha}
+                          onChange={handleInputChange}
+                          maxLength={7}
+                        />
+                        {/* Lista de sugerencias */}
+                        {suggestions.length > 0 && (
+                          <div className="absolute top-full mt-1 left-0 bg-white border border-gray-300 max-h-40 overflow-y-auto z-10">
+                            {suggestions.map((ficha) => (
+                              <div
+                                key={ficha.id}
+                                onClick={() => handleSuggestionClick(ficha)}
+                                className="flex items-center justify-between p-2 m-1 bg-green-200 border border-green-400 rounded-md cursor-pointer hover:bg-green-300"
+                              >
+                                <span className="text-sm font-semibold">{ficha.NumeroFicha}</span>
+                                {/* Otros campos de ficha pueden ir aquí */}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                      </div>
                     </div>
                     <div className="flex flex-row min-w-[200px] w-full md:w-1/3">
                       <label className="mb-1 font-bold text-xs mt-2">
@@ -357,25 +426,16 @@ const PedidosIntructores = () => {
                       </label>
                       <div className="flex flex-col">
                         <input
-                          className=" border-b border-black text-xs text-center h-8 w-200"
+                          className="border-b border-black text-xs text-center h-8 w-full" // Ajustado a w-full para que use el ancho completo disponible
                           type="text"
                           name="area"
                           value={formData.area}
-                          onChange={handleInputChange}
-                          onKeyPress={(e) => {
-                            if (/[0-9]/.test(e.key)) {
-                              e.preventDefault();
-                            }
-                          }}
+                          readOnly // Deshabilitado, se rellena automáticamente
                         />
-                        {formErrors.area && (
-                          <div className="text-red-400 text-xs mt-1 px-2">
-                            {formErrors.area}
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
+
 
                   <div className="flex flex-col md:flex-row justify-between gap-x-4">
                     <div className="flex flex-row w-full md:w-3/4">
@@ -383,18 +443,25 @@ const PedidosIntructores = () => {
                         Nombre de jefe de oficina o coordinador de área:*
                       </label>
                       <div className="flex flex-col">
-                        <input
-                          className=" border-b border-black text-xs text-center px-2 h-8"
-                          type="text"
-                          name="jefeOficina"
-                          value={formData.jefeOficina}
-                          onChange={handleInputChange}
-                        />
-                        {formErrors.jefeOficina && (
-                          <div className="text-red-400 text-xs mt-1 px-2">
-                            {formErrors.jefeOficina}
-                          </div>
-                        )}
+                      <select
+                        className="border-b border-black text-xs text-center px-2 h-8"
+                        name="jefeOficina"
+                        value={formData.jefeOficina}
+                        onChange={handleJefeSelection}
+                      >
+                        <option value="">Seleccione una opción</option>
+                        {coordinadores.map((coordinator) => (
+                          <option key={coordinator.id} value={coordinator.id}>
+                            {coordinator.nombre}
+                          </option>
+                        ))}
+                      </select>
+
+                    {formErrors.jefeOficina && (
+                      <div className="text-red-400 text-xs mt-1 px-2">
+                        {formErrors.jefeOficina}
+                      </div>
+                    )}
                       </div>
                     </div>
 
@@ -402,17 +469,11 @@ const PedidosIntructores = () => {
                       Cédula*
                     </label>
                     <input
-                      className=" border-b border-black text-xs text-center h-8 w-20"
+                      className="border-b border-black text-xs text-center h-8 w-20"
                       type="text"
                       name="cedulaJefeOficina"
                       value={formData.cedulaJefeOficina}
-                      onChange={handleInputChange}
-                      onKeyPress={(e) => {
-                        if (!/[0-9]/.test(e.key)) {
-                          e.preventDefault();
-                        }
-                      }}
-                      maxLength={10}
+                      readOnly // Hace el campo de cédula solo lectura
                     />
                     {formErrors.cedulaJefeOficina && (
                       <div className="text-red-400 text-xs mt-1 px-2">

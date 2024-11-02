@@ -1,5 +1,4 @@
-import fs from "fs";
-import path from "path";
+
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { Op, ValidationError } from "sequelize";
@@ -10,6 +9,7 @@ import PedidoProducto from "../../models/PedidoProducto.js";
 import cronJob from "node-cron";
 import { createNotification } from "../../helpers/Notificacion.helpers.js";
 import Historial from "../../models/Historial.js";
+import Usuario from "../../models/Usuario.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -111,6 +111,56 @@ export const crearPedido = async (req, res) => {
 
 
 
+export const getPedidosPorCoordinador = async (req, res) => {
+  try {
+    const { id: UsuarioId, RolId } = req.usuario;
+
+    if (RolId !== 3) {
+      return res.status(403).json({ message: "Acceso denegado. Solo los coordinadores pueden ver estos pedidos." });
+    }
+
+    const pedidos = await Pedido.findAll({
+      where: { jefeOficina: UsuarioId }, 
+      include: [
+        {
+          model: Producto,
+          through: {
+            attributes: [
+              "cantidadSolicitar",
+              "cantidadSalida",
+              "observaciones",
+            ],
+          },
+        },
+        { model: Estado },
+        {
+          model: Usuario,
+          attributes: ["nombre"], 
+          as: "coordinador",
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    if (pedidos.length === 0) {
+      return res.status(404).json({ message: "No se encontraron pedidos para este coordinador." });
+    }
+
+    const result = pedidos.map((pedido) => ({
+      ...pedido.toJSON(), 
+      jefeOficina: pedido.coordinador?.nombre || null,
+      jefeOficina: undefined,
+    }));
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Error al obtener los pedidos del coordinador:", error);
+    return res.status(500).json({ message: "Error al obtener los pedidos." });
+  }
+};
+
+
+
 
 export const getAllPedidos = async (req, res) => {
   try {
@@ -126,17 +176,31 @@ export const getAllPedidos = async (req, res) => {
             ],
           },
         },
-        { model: Estado },
+        {
+          model: Estado,
+        },
+        {
+          model: Usuario,
+          attributes: ["nombre"],
+          as: "coordinador", 
+        },
       ],
       order: [["createdAt", "DESC"]],
     });
 
-    return res.status(200).json(pedidos);
+
+    const result = pedidos.map((pedido) => ({
+      ...pedido.toJSON(),
+      jefeOficina: pedido.coordinador?.nombre || null, 
+    }));
+
+    return res.status(200).json(result);
   } catch (error) {
     console.error("Error al obtener los pedidos:", error);
     return res.status(500).json({ message: "Error al obtener los pedidos." });
   }
 };
+
 
 export const getPedido = async (req, res) => {
   const { id } = req.params;
@@ -155,8 +219,12 @@ export const getPedido = async (req, res) => {
           },
         },
         { model: Estado },
+        {
+          model: Usuario,
+          attributes: ["nombre"], 
+          as: "coordinador", 
+        },
       ],
-      
     });
 
     if (!pedido) {
@@ -165,7 +233,11 @@ export const getPedido = async (req, res) => {
         .json({ message: `Pedido con id ${id} no encontrado.` });
     }
 
-    return res.status(200).json(pedido);
+    const pedidoJSON = pedido.toJSON();
+    pedidoJSON.jefeOficinaNombre = pedido.coordinador?.nombre || null;
+    pedidoJSON.jefeOficina = undefined;
+
+    return res.status(200).json(pedidoJSON);
   } catch (error) {
     console.error("Error al obtener el pedido:", error);
     return res.status(500).json({ message: "Error al obtener el pedido." });
@@ -176,10 +248,10 @@ export const getPedido = async (req, res) => {
 
 export const actualizarPedido = async (req, res) => {
   const { id } = req.params;
-  const { filename } = req.file || {}; // Manejo seguro de filename
+  const { filename } = req.file || {}; 
 
   console.log("Datos recibidos para actualizar:", req.body);
-  console.log("Archivo subido:", req.file); // Verificar si el archivo se está recibiendo
+  console.log("Archivo subido:", req.file); 
 
   try {
     const UsuarioId = req.usuario.id;
